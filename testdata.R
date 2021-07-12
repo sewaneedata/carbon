@@ -59,6 +59,10 @@ cole_ewel <- function(d,h){
 dat <- dat %>% 
   mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
 
+#I am going to take this out in favor for a more specific formula:
+dat <- dat %>% 
+  select(-cole_ewel)
+
 
 #This is the blue equation on Dr. McGrath's spreadsheet.
 
@@ -74,6 +78,11 @@ chave <- function(d,h){
 
 dat <- dat %>% 
   mutate(chave = chave(diam_cm, Height_m))
+
+#I am going to take this out in favor for a more specific formula:
+
+dat <- dat %>% 
+  select(-chave)
 
 
 #This is the orange equation on Dr. McGrath's spreadsheet.
@@ -91,3 +100,37 @@ TFTF <- function(d,h){
 
 dat <- dat %>% 
   mutate(TFTF = TFTF(diam_cm, Height_m))
+
+#I am going to take this out in favor for a more specific formula:
+
+dat <- dat %>% 
+  select(-TFTF)
+
+
+
+#This is our found equation for Mango. The final answer is given in tons. 
+
+Sharma_Mango <- function(d){
+  Abovebiomass <- 34.4703 - 8.067*(d) + .6589*(d^2)
+  BelowGroundBiomass <- Abovebiomass*.15
+  TotalBiomass <- BelowGroundBiomass + Abovebiomass
+  carbon <- TotalBiomass * .5
+  CO2equ_kg <- carbon *3.6663
+  CO2equ_tons <- CO2equ_kg *.001102
+  return(CO2equ_tons)
+}
+
+# This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
+dat <- dat %>% 
+  mutate(Sharma_Mango = Sharma_Mango(diam_cm))
+
+# This is some code that was used to help with our shiney app
+write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
+
+
+library(reshape2)
+library(ggplot2)
+pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
+pd <- melt(pd, id.vars = c('Household', 'Species'))
+
+ggplot(pd, aes(x = variable, y =value, fill = Species )) + geom_bar(stat = 'identity', position = 'dodge')
