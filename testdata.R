@@ -56,7 +56,7 @@ dat <- dat %>%
 
 #cole_ewel <- function(d,h){
  # biomass <- 1.631+.017*(d^2)*h
-  #carbon <- biomass * .5
+  #carbon <- biomass * 0.5
   #CO2equ <- carbon * 3.6663
   #return(CO2equ)
 #}
@@ -73,9 +73,9 @@ dat <- dat %>%
 #This is the blue equation on Dr. McGrath's spreadsheet.
 
 # chave <- function(d,h){
-#   Abovebiomass <- exp(-2.187) * (.42*(d^2)*h)^.916
+#   Abovebiomass <- exp(-2.187) * (0.42*(d^2)*h)^0.916
 #    ABBiomass <- Abovebiomass * 1.2
-#    carbon <- ABBiomass * .5
+#    carbon <- ABBiomass * 0.5
 #    CO2equ <- carbon *3.6663
 #   return(CO2equ)
 # }
@@ -94,10 +94,10 @@ dat <- dat %>%
 #This is the orange equation on Dr. McGrath's spreadsheet.
 
 # TFTF <- function(d,h){
-#   Abovebiomass <- .25*((d/2.54)^2)*(h*3.28)
+#   Abovebiomass <- 0.25*((d/2.54)^2)*(h*3.28)
 #   Mass <- Abovebiomass/2.205
 #   ABBiomass <- Mass*1.2
-#   carbon <- ABBiomass * .5
+#   carbon <- ABBiomass * 0.5
 #   CO2equ <- carbon *3.6663
 #   return(CO2equ)
 # }
@@ -137,7 +137,7 @@ Sharma_Mango <- function(d){
 #INCLUDES ONLY ABOVE GROUND BIOMASS
 
 Dickert_Mahogany <- function(d,h){
-  Abovebiomass <- .09029*((d^2)*h)^(0.684)
+  Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
   carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
   CO2equ_tons <- CO2equ_kg *0.001102
@@ -173,7 +173,7 @@ Cole_Cedrela <- function(d,h){
 # INCLUDES ABOVE AND BELOW GROUND BIOMASS!
 
 Padjung_Coffee <- function(d){
-  Abovebiomass <- .11*.62*(d)*2.62
+  Abovebiomass <- 0.11*0.62*(d)*2.62
   carbonTree <- Abovebiomass * 0.5
   BelowBiomass <- carbonTree*0.2
   AGABGBiomass <- BelowBiomass + carbonTree
