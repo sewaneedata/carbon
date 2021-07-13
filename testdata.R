@@ -118,11 +118,11 @@ dat <- dat %>%
 
 Sharma_Mango <- function(d){
   Abovebiomass <- 34.4703 - 8.067*(d) + .6589*(d^2)
-  BelowGroundBiomass <- Abovebiomass*.15
+  BelowGroundBiomass <- Abovebiomass*0.15
   TotalBiomass <- BelowGroundBiomass + Abovebiomass
-  carbon <- TotalBiomass * .5
+  carbon <- TotalBiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
 
@@ -137,10 +137,10 @@ Sharma_Mango <- function(d){
 #INCLUDES ONLY ABOVE GROUND BIOMASS
 
 Dickert_Mahogany <- function(d,h){
-  Abovebiomass <- .09029*((d^2)*h)^(.684)
-  carbon <- Abovebiomass * .5
+  Abovebiomass <- .09029*((d^2)*h)^(0.684)
+  carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
 
@@ -155,10 +155,10 @@ Dickert_Mahogany <- function(d,h){
 # I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. INLCUDES ONLY THE ABOVE GROUND BIOMASS!
 
 Cole_Cedrela <- function(d,h){
-  Abovebiomass <- .0448*((d^2)*h)^(.4879)
-  carbon <- Abovebiomass * .5
+  Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
+  carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
 
@@ -174,11 +174,11 @@ Cole_Cedrela <- function(d,h){
 
 Padjung_Coffee <- function(d){
   Abovebiomass <- .11*.62*(d)*2.62
-  carbonTree <- Abovebiomass * .5
-  BelowBiomass <- carbonTree*.2
+  carbonTree <- Abovebiomass * 0.5
+  BelowBiomass <- carbonTree*0.2
   AGABGBiomass <- BelowBiomass + carbonTree
   CO2equ_kg <- AGABGBiomass *3.6663
-  CO2equ_tons <- CO2equ_kg *.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
 
