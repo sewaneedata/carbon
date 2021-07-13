@@ -26,8 +26,8 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             menuItem(
-                text="Main",
-                tabName="main"),
+                text="2019 Data",
+                tabName="testdata_19"),
             menuItem(
                 text = 'Map',
                 tabName = 'map'),
@@ -41,13 +41,17 @@ ui <- dashboardPage(
         ),
         tabItems(
             tabItem(
-                tabName="main",
+                tabName="testdata_19",
               fluidRow(
                   column(4,
                          selectInput(inputId = "Household",
                                      label = "Choose a Household",
                                      choices = unique(dat$Household),
                                      selected = '1'),
+                         radioButtons(inputId = "Graph",
+                                      label = "Choose a graph",
+                                      choices = c("Carbon sequestered","Carbon payments", "Number of trees"),
+                                      selected = "Carbon sequestered"),
                          br(),
                          valueBoxOutput("tot_carb", width = '100%'),
                          br(),
@@ -59,6 +63,10 @@ ui <- dashboardPage(
                          ),
                   
                   column(8, 
+                         br (),
+                         br (),
+                         br (),
+                         br (),
                          plotOutput("Household"))
               )
             ),
@@ -73,11 +81,11 @@ ui <- dashboardPage(
                     fluidRow(
                         div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
                         h4('Built in partnership with ',
-                           a(href = 'http://databrew.cc',
-                             target='_blank', 'Databrew'),
+                           a(href = 'http://datalab.sewanee.edu',
+                             target='_blank', 'DataLab'),
                            align = 'center'),
-                        p('Empowering research and analysis through collaborative data science.', align = 'center'),
-                        div(a(actionButton(inputId = "email", label = "info@databrew.cc",
+                        p('Sewanee is in collaboration with the Haitian organization, Zanmi Agrikol, to incentivize 50 family farmers to grow trees instead of selling material for coal through payments made by the Sewanee Green Fund. The payments reflect the carbon sequestration of the planted trees which is quantified and analyzed by our DataLab team. The addition of these trees provides a shade canopy and enriches the soil with nutrients, enabling farmers to establish more sustainable regenerative coffee-based agroecosystems (agroforests).', align = 'center'),
+    div(a(actionButton(inputId = "email", label = "info@databrew.cc",
                                            icon = icon("envelope", lib = "font-awesome")),
                               href="mailto:info@databrew.cc",
                               align = 'center')),
@@ -98,7 +106,7 @@ server <- function(input, output) {
         sum_calc <- round(sum(subhe$Calculations))
         valueBox(value = sum_calc,
                  icon = icon ('globe'),
-                 subtitle = paste0('Total Carbon Sequestered in Mg for Farm ', he), color = 'blue' )
+                 subtitle = paste0('Total Carbon Sequestered in Kg for Farm ', he), color = 'aqua' )
     })
     output$tot_money <- renderValueBox({
         he <- input$Household
@@ -108,7 +116,7 @@ server <- function(input, output) {
         sum_money <- round(sum_calc*50)
         valueBox(value = paste0 ('$', sum_money),
                  icon = icon ('dollar'),
-                 subtitle = paste0('Total Money Paid to Farmers (USD)'), color = 'blue')
+                 subtitle = paste0('Total Money Paid to Household (USD)'), color = 'blue')
         
     })
     output$tot_tree <- renderValueBox({
@@ -118,16 +126,25 @@ server <- function(input, output) {
         sum_tree <- round(length(subhe$Household))
         valueBox(value = sum_tree,
                  icon = icon ('tree'),
-                 subtitle = paste0('Total Trees on Farm ', he), color = 'blue' )
+                 subtitle = paste0('Total Trees on Farm ', he), color = 'green' )
     })
     
     output$Household <- renderPlot({
         he <- input$Household
+        graph <- input$Graph
+        
+        # create plot based on Graph
+        
         subhe <- dat %>%
-            filter(Household == he)
-        ggplot(subhe, aes(x = he, y = Calculations, fill = Species)) +
-            geom_bar(stat = 'identity', position = 'dodge')+
-            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Household', y = 'C02 Estimate (Mg)') + ggthemes::theme_economist() + theme (legend.position = 'bottom')
+            filter(Household == he) %>% 
+            group_by( Species ) %>% 
+            summarize( Carbon = sum(Calculations))
+        
+        ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
+            geom_col(position = 'dodge') +
+            geom_text( aes(label=round(Carbon)), vjust=0) +
+            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Household', y = 'C02 Estimate (kg)') + ggthemes::theme_economist() + theme (legend.position = 'bottom')
     })
 }
+
 shinyApp(ui, server)

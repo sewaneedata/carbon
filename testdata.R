@@ -123,8 +123,8 @@ Sharma_Mango <- function(d){
   carbon <- TotalBiomass * 0.5
   CO2equ_kg <- carbon *3.6663
   # CO2equ_tons <- CO2equ_kg *0.001102
-  CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_mg)
+  # CO2equ_mg <- CO2equ_kg* 1000000
+  return(CO2equ_kg)
 }
 
 # # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
@@ -142,8 +142,8 @@ Dickert_Mahogany <- function(d,h){
   carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
   # CO2equ_tons <- CO2equ_kg *0.001102
-  CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_mg)
+  # CO2equ_mg <- CO2equ_kg* 1000000
+  return(CO2equ_kg)
 }
 
 
@@ -161,8 +161,8 @@ Cole_Cedrela <- function(d,h){
   carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
   # CO2equ_tons <- CO2equ_kg *0.001102
-  CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_mg)
+  # CO2equ_mg <- CO2equ_kg* 1000000
+  return(CO2equ_kg)
 }
 
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
@@ -182,8 +182,8 @@ Padjung_Coffee <- function(d){
   AGABGBiomass <- BelowBiomass + carbonTree
   CO2equ_kg <- AGABGBiomass *3.6663
   # CO2equ_tons <- CO2equ_kg *0.001102
-  CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_mg)
+  # CO2equ_mg <- CO2equ_kg* 1000000
+  return(CO2equ_kg)
 }
 
 # This is the code that creates a new column in the data with the equation from the Cole and Padjung paper. 
@@ -216,9 +216,3 @@ dat <- dat %>%
 write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 
 
-library(reshape2)
-library(ggplot2)
-pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
-pd <- melt(pd, id.vars = c('Household', 'Species'))
-
-ggplot(pd, aes(x = variable, y =value, fill = Species )) + geom_bar(stat = 'identity', position = 'dodge')
