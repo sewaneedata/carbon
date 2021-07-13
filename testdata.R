@@ -117,7 +117,7 @@ dat <- dat %>%
 #This is our found equation for Mango. The final answer is given in tons. INCLUDES ABOVE AND BELOW GROUND BIOMASS!
 
 Sharma_Mango <- function(d){
-  Abovebiomass <- 34.4703 - 8.067*(d) + .6589*(d^2)
+  Abovebiomass <- 34.4703 - 8.067*(d) + 0.6589*(d^2)
   BelowGroundBiomass <- Abovebiomass*0.15
   TotalBiomass <- BelowGroundBiomass + Abovebiomass
   carbon <- TotalBiomass * 0.5
