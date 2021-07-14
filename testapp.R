@@ -129,6 +129,7 @@ server <- function(input, output) {
     })
     
     output$Household <- renderPlot({
+
         he <- input$Household
         graph <- input$Graph
         
@@ -138,11 +139,39 @@ server <- function(input, output) {
             group_by( Species ) %>% 
             summarize( Carbon = sum(Calculations))
         
-        ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
+        payments <- dat %>%
+            filter(Household == he)%>%
+            group_by( Species ) %>%
+            summarise(Pay = (sum(Calculations)*50))
+        
+        Num_Tree <- dat%>%
+            filter(Household == he)%>%
+            group_by( Species ) %>%
+            summarise(Tre = length(Household))
+        
+        if(input$Graph=='Carbon sequestered'){
+            ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
             geom_col(position = 'dodge') +
             geom_text( aes(label=round(Carbon,3)), vjust=0) +
-            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Household', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'bottom')
-    })
+            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+    }
+    else if (input$Graph == 'Carbon payments'){
+        ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
+            geom_col(position = 'dodge') +
+            geom_text( aes(label=round(Pay,2)), vjust=0) +
+            labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
+    }
+        else if (input$Graph == 'Number of trees'){
+            ggplot(data = Num_Tree, aes(x = Species, y = Tre, fill = Species))+
+                geom_col(position = 'dodge') +
+                geom_text( aes(label=Tre, vjust=0)) +
+                labs(title = paste0('Number of Trees for Household ',he), x = 'Species', y = 'Number of Trees') + ggthemes::theme_economist() + theme (legend.position = 'none')
+        }
+        
+    }
+    )
 }
 
+
 shinyApp(ui, server)
+
