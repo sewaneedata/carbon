@@ -122,9 +122,9 @@ Sharma_Mango <- function(d){
   TotalBiomass <- BelowGroundBiomass + Abovebiomass
   carbon <- TotalBiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  # CO2equ_tons <- CO2equ_kg *0.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   # CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_kg)
+  return(CO2equ_tons)
 }
 
 # # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
@@ -141,9 +141,9 @@ Dickert_Mahogany <- function(d,h){
   Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
   carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  # CO2equ_tons <- CO2equ_kg *0.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   # CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_kg)
+  return(CO2equ_tons)
 }
 
 
@@ -160,9 +160,9 @@ Cole_Cedrela <- function(d,h){
   Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
   carbon <- Abovebiomass * 0.5
   CO2equ_kg <- carbon *3.6663
-  # CO2equ_tons <- CO2equ_kg *0.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   # CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_kg)
+  return(CO2equ_tons)
 }
 
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
@@ -181,9 +181,9 @@ Padjung_Coffee <- function(d){
   BelowBiomass <- carbonTree*0.2
   AGABGBiomass <- BelowBiomass + carbonTree
   CO2equ_kg <- AGABGBiomass *3.6663
-  # CO2equ_tons <- CO2equ_kg *0.001102
+  CO2equ_tons <- CO2equ_kg *0.001102
   # CO2equ_mg <- CO2equ_kg* 1000000
-  return(CO2equ_kg)
+  return(CO2equ_tons)
 }
 
 # This is the code that creates a new column in the data with the equation from the Cole and Padjung paper. 

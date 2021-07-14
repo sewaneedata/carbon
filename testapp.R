@@ -103,18 +103,17 @@ server <- function(input, output) {
         he <- input$Household
         subhe <- dat %>%
             filter(Household == he)
-        sum_calc <- round(sum(subhe$Calculations))
-        valueBox(value = sum_calc,
+        sum_calc <- sum(subhe$Calculations)
+        valueBox(value = round(sum_calc, 3),
                  icon = icon ('globe'),
-                 subtitle = paste0('Total Carbon Sequestered in Kg for Farm ', he), color = 'aqua' )
+                 subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua' )
     })
     output$tot_money <- renderValueBox({
         he <- input$Household
         subhe <- dat %>%
             filter(Household == he)
-        sum_calc <- round(sum(subhe$Calculations))
-        sum_money <- round(sum_calc*50)
-        valueBox(value = paste0 ('$', sum_money),
+        sum_calc <- (sum(subhe$Calculations))*50
+        valueBox(value = paste0 ('$', round(sum_calc,2)),
                  icon = icon ('dollar'),
                  subtitle = paste0('Total Money Paid to Household (USD)'), color = 'blue')
         
@@ -123,7 +122,7 @@ server <- function(input, output) {
         he <- input$Household
         subhe <- dat %>%
             filter(Household == he)
-        sum_tree <- round(length(subhe$Household))
+        sum_tree <- length(subhe$Household)
         valueBox(value = sum_tree,
                  icon = icon ('tree'),
                  subtitle = paste0('Total Trees on Farm ', he), color = 'green' )
@@ -133,8 +132,7 @@ server <- function(input, output) {
         he <- input$Household
         graph <- input$Graph
         
-        # create plot based on Graph
-        
+        # create plot based on households. 
         subhe <- dat %>%
             filter(Household == he) %>% 
             group_by( Species ) %>% 
@@ -142,8 +140,8 @@ server <- function(input, output) {
         
         ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
             geom_col(position = 'dodge') +
-            geom_text( aes(label=round(Carbon)), vjust=0) +
-            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Household', y = 'C02 Estimate (kg)') + ggthemes::theme_economist() + theme (legend.position = 'bottom')
+            geom_text( aes(label=round(Carbon,3)), vjust=0) +
+            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Household', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'bottom')
     })
 }
 
