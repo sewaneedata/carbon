@@ -46,8 +46,8 @@ ui <- dashboardPage(
                   column(4,
                          selectInput(inputId = "Household",
                                      label = "Choose a Household",
-                                     choices = unique(dat$Household),
-                                     selected = '1'),
+                                     choices = c ('All',unique(dat$Household)),
+                                     selected = 'All'),
                          radioButtons(inputId = "Graph",
                                       label = "Choose a graph",
                                       choices = c("Carbon sequestered","Carbon payments", "Number of trees"),
@@ -134,20 +134,40 @@ server <- function(input, output) {
         graph <- input$Graph
         
         # create plot based on households. 
-        subhe <- dat %>%
-            filter(Household == he) %>% 
+        subhe <- if (he == 'All') {
+                dat  %>%
+                group_by( Species ) %>% 
+                summarize( Carbon = sum(Calculations))
+        } else {
+            dat  %>%
+                filter(Household == he) %>% 
             group_by( Species ) %>% 
             summarize( Carbon = sum(Calculations))
+        }
         
-        payments <- dat %>%
-            filter(Household == he)%>%
-            group_by( Species ) %>%
-            summarise(Pay = (sum(Calculations)*50))
+        payments <- if (he == 'All') {
+            dat  %>%
+                group_by( Species ) %>%
+                summarise(Pay = (sum(Calculations)*50))
+        } else {
+            dat %>%
+                filter(Household == he)%>%
+                group_by( Species ) %>%
+                summarise(Pay = (sum(Calculations)*50))
+        }
         
-        Num_Tree <- dat%>%
-            filter(Household == he)%>%
-            group_by( Species ) %>%
-            summarise(Tre = length(Household))
+        
+        Num_Tree <- if (he == 'All') {
+            dat  %>%
+                group_by( Species ) %>%
+                summarise(Tre = length(Household))
+        } else {
+            dat%>%
+                filter(Household == he)%>%
+                group_by( Species ) %>%
+                summarise(Tre = length(Household))
+        }
+            
         
         if(input$Graph=='Carbon sequestered'){
             ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +

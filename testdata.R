@@ -54,16 +54,18 @@ dat <- dat %>%
 
 # This is the green equation on Dr. McGrath's spreadsheet.  
 
-#cole_ewel <- function(d,h){
- # biomass <- 1.631+.017*(d^2)*h
-  #carbon <- biomass * 0.5
-  #CO2equ <- carbon * 3.6663
-  #return(CO2equ)
-#}
+cole_ewel <- function(d,h){
+biomass <- 1.631+.017*(d^2)*h
+carbon <- biomass * 0.5
+CO2equ <- carbon * 3.6663
+CO2equ_tons <- CO2equ *0.001102
+return(CO2equ_tons)
+}
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
-#dat <- dat %>% 
-  #mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
+
+dat <- dat %>%
+mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
 
 #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>% 
@@ -72,18 +74,18 @@ dat <- dat %>%
 
 #This is the blue equation on Dr. McGrath's spreadsheet.
 
-# chave <- function(d,h){
-#   Abovebiomass <- exp(-2.187) * (0.42*(d^2)*h)^0.916
-#    ABBiomass <- Abovebiomass * 1.2
-#    carbon <- ABBiomass * 0.5
-#    CO2equ <- carbon *3.6663
-#   return(CO2equ)
-# }
+chave <- function(d,h){
+  Abovebiomass <- exp(-2.187) * (0.42*(d^2)*h)^0.916
+   ABBiomass <- Abovebiomass * 1.2
+   carbon <- ABBiomass * 0.5
+   CO2equ <- carbon *3.6663
+  return(CO2equ)
+}
 
 # This is the code that creates a new column in the data with the equation from the chave paper (blue equation). 
 
-# dat <- dat %>% 
-#   mutate(chave = chave(diam_cm, Height_m))
+dat <- dat %>%
+  mutate(chave = chave(diam_cm, Height_m))
 # 
 # #I am going to take this out in favor for a more specific formula:
 # 
@@ -93,19 +95,19 @@ dat <- dat %>%
 
 #This is the orange equation on Dr. McGrath's spreadsheet.
 
-# TFTF <- function(d,h){
-#   Abovebiomass <- 0.25*((d/2.54)^2)*(h*3.28)
-#   Mass <- Abovebiomass/2.205
-#   ABBiomass <- Mass*1.2
-#   carbon <- ABBiomass * 0.5
-#   CO2equ <- carbon *3.6663
-#   return(CO2equ)
-# }
+TFTF <- function(d,h){
+  Abovebiomass <- 0.25*((d/2.54)^2)*(h*3.28)
+  Mass <- Abovebiomass/2.205
+  ABBiomass <- Mass*1.2
+  carbon <- ABBiomass * 0.5
+  CO2equ <- carbon *3.6663
+  return(CO2equ)
+}
 # 
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
-# dat <- dat %>% 
-#   mutate(TFTF = TFTF(diam_cm, Height_m))
+dat <- dat %>%
+  mutate(TFTF = TFTF(diam_cm, Height_m))
 
 #I am going to take this out in favor for a more specific formula:
 
@@ -118,18 +120,19 @@ dat <- dat %>%
 
 Sharma_Mango <- function(d){
   Abovebiomass <- 34.4703 - 8.067*(d) + 0.6589*(d^2)
-  BelowGroundBiomass <- Abovebiomass*0.15
+  BelowGroundBiomass <- Abovebiomass*1.2
   TotalBiomass <- BelowGroundBiomass + Abovebiomass
   carbon <- TotalBiomass * 0.5
   CO2equ_kg <- carbon *3.6663
   CO2equ_tons <- CO2equ_kg *0.001102
-  # CO2equ_mg <- CO2equ_kg* 1000000
   return(CO2equ_tons)
 }
 
 # # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
-# dat <- dat %>% 
-#   mutate(Mango = Sharma_Mango(diam_cm))
+
+dat <- dat %>%
+  mutate(Mango = Sharma_Mango(diam_cm))
+
 # dat <- dat %>%
 #   select(-Mango)
 
@@ -139,36 +142,40 @@ Sharma_Mango <- function(d){
 
 Dickert_Mahogany <- function(d,h){
   Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
-  carbon <- Abovebiomass * 0.5
+  BlowGround <- Abovebiomass *1.2
+  AGABG <- Abovebiomass + BlowGround
+  carbon <- AGABG * 0.5
   CO2equ_kg <- carbon *3.6663
   CO2equ_tons <- CO2equ_kg *0.001102
-  # CO2equ_mg <- CO2equ_kg* 1000000
   return(CO2equ_tons)
 }
 
 
 # This is the code that creates a new column in the data with the equation from the Dickert paper. 
 
-# dat <- dat %>% 
-#   mutate(Mahogany = Dickert_Mahogany(diam_cm, Height_m))
-# dat <- dat %>%
-#   select(-Mahogany)
+dat <- dat %>%
+  mutate(Mahogany = Dickert_Mahogany(diam_cm, Height_m))
+
+dat <- dat %>%
+  select(-Mahogany)
 
 # I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. INLCUDES ONLY THE ABOVE GROUND BIOMASS!
 
 Cole_Cedrela <- function(d,h){
   Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
-  carbon <- Abovebiomass * 0.5
+  BlowGround <- Abovebiomass *1.2
+  AGABG <- Abovebiomass + BlowGround
+  carbon <- AGABG * 0.5
   CO2equ_kg <- carbon *3.6663
   CO2equ_tons <- CO2equ_kg *0.001102
-  # CO2equ_mg <- CO2equ_kg* 1000000
   return(CO2equ_tons)
 }
 
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
 
-# dat <- dat %>% 
-#   mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
+dat <- dat %>%
+  mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
+
 # dat <- dat %>%
 #   select(-Cedrela)
 
@@ -178,17 +185,18 @@ Cole_Cedrela <- function(d,h){
 Padjung_Coffee <- function(d){
   Abovebiomass <- 0.11*0.62*(d)*2.62
   carbonTree <- Abovebiomass * 0.5
-  BelowBiomass <- carbonTree*0.2
+  BelowBiomass <- carbonTree*1.2
   AGABGBiomass <- BelowBiomass + carbonTree
   CO2equ_kg <- AGABGBiomass *3.6663
   CO2equ_tons <- CO2equ_kg *0.001102
-  # CO2equ_mg <- CO2equ_kg* 1000000
   return(CO2equ_tons)
 }
 
-# This is the code that creates a new column in the data with the equation from the Cole and Padjung paper. 
-# dat <- dat %>% 
-#   mutate(Coffee = Padjung_Coffee(diam_cm))
+# This is the code that creates a new column in the data with the equation from the Cole and Padjung paper.
+
+dat <- dat %>%
+  mutate(Coffee = Padjung_Coffee(diam_cm))
+
 # dat <- dat %>%
 #   select(-Coffee)
 
@@ -206,7 +214,15 @@ dat <- dat %>%
 
 
 
+dat <- dat %>%
+  mutate(diff = cole_ewel - Calculations)
 
+dat <- dat %>%
+  mutate(perc = ((cole_ewel - Calculations)/cole_ewel)*100)
+
+look <- dat %>%
+  group_by(Species)%>%
+  summarise(avg_height = mean(Height_m)) 
 
 
 
