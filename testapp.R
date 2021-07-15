@@ -30,8 +30,8 @@ ui <- dashboardPage(
                 text="2019 Data",
                 tabName="testdata_19"),
             menuItem(
-                text = 'Map',
-                tabName = 'map'),
+                text = 'Regressions',
+                tabName = 'Regression'),
             menuItem(
                 text = 'About',
                 tabName = 'about')
@@ -72,8 +72,19 @@ ui <- dashboardPage(
               )
             ),
             tabItem(
-                tabName="map",
-                h4('Maps here')
+                tabName="Regression",
+                h4('View Regression Per Household'),
+                fluidRow(
+                    column(12,
+                           selectInput(inputId = "Regress",
+                                       label = "Choose a Household",
+                                       choices = c ('All',unique(dat$Household)),
+                                       selected = 'All'),
+                    column(12, 
+                           plotOutput("Regression"))
+                )
+            ),
+                
                 
             ),
             tabItem(
@@ -99,6 +110,28 @@ ui <- dashboardPage(
 )
 # Server
 server <- function(input, output) {
+    
+    output$Regression <- renderPlot({
+        he <- input$Household
+        subreg <- if (he == 'All'){
+            dat %>% 
+                group_by (Species)
+                
+            
+           }
+        else {
+            dat %>%
+                filter (Household == he) %>%
+                group_by (Species)
+                
+            
+        }
+                
+        ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
+                   geom_point()+
+                    geom_smooth(method = lm) +
+                    facet_wrap(~Species)
+    })
     
     output$tot_carb <- renderValueBox({
         he <- input$Household
