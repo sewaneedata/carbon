@@ -22,6 +22,8 @@ dat <- do.call('rbind', data_list)
 
 dat <- dat %>% drop_na()
 
+nrow(dat)
+dat <- dat[complete.cases(dat),]
 
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe. 
 
@@ -52,6 +54,37 @@ dat <- dat %>%
 dat <- dat %>%
   select(-diam_mm)
 
+
+# ==============================
+# Create fake data
+house <- c(rep(1,times=5),
+           rep(2,times=5))
+diameter <- runif(10,20,50)
+trees <- data.frame(dat$Household, dat$diam_cm)
+trees # check it out
+head(dat)
+# ==============================
+# Now assign an ID to each tree
+# but only has to be unique for each household
+# Get unique values for the `house` column
+houses <- unique(dat$Household) ; houses
+i=1 # define i to help build for loop
+ids <- c() # stage an empty vector for placing id's
+
+for(i in 1:length(houses)){ # begin for loop
+  housi <- houses[i] ; housi # determine the house corresponding to this value of i
+  treesi <- dat[dat$Household == housi,] ; treesi # subset data to only entries for this house
+  idi <- 1:nrow(treesi) ; idi # create a list of ids for trees belonding to this house
+  ids <- c(ids, idi) # add these ids to the growing list of ids
+}
+
+ids
+dat$id <- ids # add these id's as a column to the dataframe
+head(dat) # check it out
+
+dat <- dat%>%
+  mutate(year = 2019)
+
 # This is the green equation on Dr. McGrath's spreadsheet.  
 
 cole_ewel <- function(d,h){
@@ -64,11 +97,11 @@ return(CO2equ_tons)
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
 
-dat <- dat %>%
-mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
-
-#I am going to take this out in favor for a more specific formula:
-# dat <- dat %>% 
+# dat <- dat %>%
+# mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
+# 
+# #I am going to take this out in favor for a more specific formula:
+# dat <- dat %>%
 #   select(-cole_ewel)
 
 
@@ -84,8 +117,8 @@ chave <- function(d,h){
 
 # This is the code that creates a new column in the data with the equation from the chave paper (blue equation). 
 
-dat <- dat %>%
-  mutate(chave = chave(diam_cm, Height_m))
+# dat <- dat %>%
+#   mutate(chave = chave(diam_cm, Height_m))
 # 
 # #I am going to take this out in favor for a more specific formula:
 # 
@@ -106,8 +139,8 @@ TFTF <- function(d,h){
 # 
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
-dat <- dat %>%
-  mutate(TFTF = TFTF(diam_cm, Height_m))
+# dat <- dat %>%
+#   mutate(TFTF = TFTF(diam_cm, Height_m))
 
 #I am going to take this out in favor for a more specific formula:
 
@@ -130,9 +163,9 @@ Sharma_Mango <- function(d){
 
 # # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
 
-dat <- dat %>%
-  mutate(Mango = Sharma_Mango(diam_cm))
-
+# dat <- dat %>%
+#   mutate(Mango = Sharma_Mango(diam_cm))
+# 
 # dat <- dat %>%
 #   select(-Mango)
 
@@ -153,11 +186,11 @@ Dickert_Mahogany <- function(d,h){
 
 # This is the code that creates a new column in the data with the equation from the Dickert paper. 
 
-dat <- dat %>%
-  mutate(Mahogany = Dickert_Mahogany(diam_cm, Height_m))
-
-dat <- dat %>%
-  select(-Mahogany)
+# dat <- dat %>%
+#   mutate(Mahogany = Dickert_Mahogany(diam_cm, Height_m))
+# 
+# dat <- dat %>%
+#   select(-Mahogany)
 
 # I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. INLCUDES ONLY THE ABOVE GROUND BIOMASS!
 
@@ -173,8 +206,8 @@ Cole_Cedrela <- function(d,h){
 
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
 
-dat <- dat %>%
-  mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
+# dat <- dat %>%
+#   mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
 
 # dat <- dat %>%
 #   select(-Cedrela)
@@ -194,8 +227,8 @@ Padjung_Coffee <- function(d){
 
 # This is the code that creates a new column in the data with the equation from the Cole and Padjung paper.
 
-dat <- dat %>%
-  mutate(Coffee = Padjung_Coffee(diam_cm))
+# dat <- dat %>%
+#   mutate(Coffee = Padjung_Coffee(diam_cm))
 
 # dat <- dat %>%
 #   select(-Coffee)
@@ -214,21 +247,22 @@ dat <- dat %>%
 
 
 
-dat <- dat %>%
-  mutate(diff = cole_ewel - Calculations)
-
-dat <- dat %>%
-  mutate(perc = ((cole_ewel - Calculations)/cole_ewel)*100)
-
-look <- dat %>%
-  group_by(Species)%>%
-  summarise(avg_height = mean(Height_m)) 
+# dat <- dat %>%
+#   mutate(diff = cole_ewel - Calculations)
+# 
+# dat <- dat %>%
+#   mutate(perc = (((cole_ewel - Calculations)/cole_ewel)*100))
+# 
+# look <- dat %>%
+#   group_by(Species)%>%
+#   summarise(avg_height = mean(Height_m)) 
 
 
 
 #GGPLOT STUFF FOR SHINYAPP
 
 # This is some code that was used to help with our shiney app
-write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
+write.csv(dat, '~/Documents/datascience/carbon/dat.csv',
+          row.names=FALSE)
 
 
