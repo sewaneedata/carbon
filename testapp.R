@@ -2,9 +2,10 @@ library(shiny)
 library(shinydashboard)
 library(dplyr)
 library(shinythemes)
+library(ggplot2)
 
 dat <- read.csv('dat.csv')
-write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
+# write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 # pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
 # pd <- melt(pd, id.vars = c('Household', 'Species'))
 #
