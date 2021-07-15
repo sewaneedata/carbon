@@ -5,6 +5,10 @@ library(shinythemes)
 library(ggplot2)
 
 dat <- read.csv('dat.csv')
+
+# delete this next line
+dat$year[25:50] <- 2021
+
 # write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 # pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
 # pd <- melt(pd, id.vars = c('Household', 'Species'))
@@ -27,7 +31,7 @@ ui <- dashboardPage(
     dashboardSidebar(
         sidebarMenu(
             menuItem(
-                text="2019 Data",
+                text="Data",
                 tabName="testdata_19"),
             menuItem(
                 text = 'Regressions',
@@ -45,10 +49,12 @@ ui <- dashboardPage(
                 tabName="testdata_19",
                 fluidRow(
                     column(4,
-                           selectInput(inputId = "Household",
-                                       label = "Choose a Household",
-                                       choices = c ('All',unique(dat$Household)),
-                                       selected = 'All'),
+                           selectInput(inputId = "year",
+                                       label = "Choose a Year",
+                                      choices = c("2019", "2021"),
+                                      selected = c("2019", "2021"),
+                                      multiple = TRUE),
+                           uiOutput('household_ui'),
                            radioButtons(inputId = "Graph",
                                         label = "Choose a graph",
                                         choices = c("Carbon sequestered","Carbon payments", "Number of trees"),
@@ -76,10 +82,18 @@ ui <- dashboardPage(
                 h4('View Regression Per Household in 2019'),
                 fluidRow(
                     column(12,
-                           selectInput(inputId = "Regress",
+                           selectInput(inputId = "year_regress",
+                                       label = "Choose a Year",
+                                       choices = c("2019", "2021"),
+                                       selected = c("2019", "2021"),
+                                       multiple = TRUE),
+                           # put a uiOutput here and then put the selectInput 
+                           # in a renderUI
+                           selectInput(inputId = "household_regress",
                                        label = "Choose a Household",
                                        choices = c ('All',unique(dat$Household)),
                                        selected = 'All'),
+                           
                            column(12, 
                                   plotOutput("Regression"))
                     )
@@ -111,12 +125,30 @@ ui <- dashboardPage(
 # Server
 server <- function(input, output) {
     
+    output$household_ui <- renderUI({
+        
+        sub_dat <- dat %>% filter(year %in% input$year)
+        hh_choices <- sort(unique(sub_dat$Household))
+        if(length(hh_choices) > 0){
+            hh_choices <- c('All', hh_choices)
+            selectInput(inputId = "Household",
+                        label = "Choose a Household",
+                        choices = hh_choices,
+                        multiple = FALSE)
+        } else {
+            h3('No households for the year(s) selected')
+        }
+        
+        
+    })
+    
     output$Regression <- renderPlot({
-        he <- input$Regress
+        he <- input$household_regress
+        datyear_reg <- dat %>% filter(year %in% input$year_regress)
         if (he == 'All'){
             message('he is all')
             subreg <-     
-                dat 
+                datyear_reg 
         }
         else {
             message('he is ', he)
@@ -138,6 +170,9 @@ server <- function(input, output) {
         subhe <- dat %>%
             filter(Household == he)
         }
+        
+        subhe <- subhe %>% filter(year %in% input$year)
+        
         sum_calc <- sum(subhe$Calculations,na.rm=TRUE)
         valueBox(value = round(sum_calc, 3),
                  icon = icon ('globe'),
@@ -150,6 +185,7 @@ server <- function(input, output) {
             subhe <- dat %>%
                 filter(Household == he)
         }
+        subhe <- subhe %>% filter(year %in% input$year)
         sum_calc <- (sum(subhe$Calculations))*50
         valueBox(value = paste0 ('$', round(sum_calc,2)),
                  icon = icon ('dollar'),
@@ -163,6 +199,7 @@ server <- function(input, output) {
             subhe <- dat %>%
                 filter(Household == he)
         }
+        subhe <- subhe %>% filter(year %in% input$year)
         sum_tree <- length(subhe$Household)
         valueBox(value = sum_tree,
                  icon = icon ('tree'),
@@ -171,27 +208,29 @@ server <- function(input, output) {
     
     output$Household <- renderPlot({
         
+        datyear <- dat %>% filter(year %in% input$year)
+        
         he <- input$Household
         graph <- input$Graph
         
         # create plot based on households. 
         subhe <- if (he == 'All') {
-            dat  %>%
+            datyear  %>%
                 group_by( Species ) %>% 
                 summarize( Carbon = sum(Calculations))
         } else {
-            dat  %>%
+            datyear  %>%
                 filter(Household == he) %>% 
                 group_by( Species ) %>% 
                 summarize( Carbon = sum(Calculations))
         }
         
         payments <- if (he == 'All') {
-            dat  %>%
+            datyear  %>%
                 group_by( Species ) %>%
                 summarise(Pay = (sum(Calculations)*50))
         } else {
-            dat %>%
+            datyear %>%
                 filter(Household == he)%>%
                 group_by( Species ) %>%
                 summarise(Pay = (sum(Calculations)*50))
@@ -199,11 +238,11 @@ server <- function(input, output) {
         
         
         Num_Tree <- if (he == 'All') {
-            dat  %>%
+            datyear  %>%
                 group_by( Species ) %>%
                 summarise(Tre = length(Household))
         } else {
-            dat%>%
+            datyear %>%
                 filter(Household == he)%>%
                 group_by( Species ) %>%
                 summarise(Tre = length(Household))
