@@ -73,7 +73,7 @@ ui <- dashboardPage(
             ),
             tabItem(
                 tabName="Regression",
-                h4('View Regression Per Household'),
+                h4('View Regression Per Household in 2019'),
                 fluidRow(
                     column(12,
                            selectInput(inputId = "Regress",
@@ -127,22 +127,29 @@ server <- function(input, output) {
         ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
             geom_point()+
             geom_smooth(method = lm) +
-            facet_wrap(~Species)
+            facet_wrap(~Species)+
+            labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
     })
     
     output$tot_carb <- renderValueBox({
         he <- input$Household
+        subhe <- dat
+        if(he != "All"){
         subhe <- dat %>%
             filter(Household == he)
-        sum_calc <- sum(subhe$Calculations)
+        }
+        sum_calc <- sum(subhe$Calculations,na.rm=TRUE)
         valueBox(value = round(sum_calc, 3),
                  icon = icon ('globe'),
                  subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua' )
     })
     output$tot_money <- renderValueBox({
         he <- input$Household
-        subhe <- dat %>%
-            filter(Household == he)
+        subhe <- dat
+        if(he != "All"){
+            subhe <- dat %>%
+                filter(Household == he)
+        }
         sum_calc <- (sum(subhe$Calculations))*50
         valueBox(value = paste0 ('$', round(sum_calc,2)),
                  icon = icon ('dollar'),
@@ -151,8 +158,11 @@ server <- function(input, output) {
     })
     output$tot_tree <- renderValueBox({
         he <- input$Household
-        subhe <- dat %>%
-            filter(Household == he)
+        subhe <- dat
+        if(he != "All"){
+            subhe <- dat %>%
+                filter(Household == he)
+        }
         sum_tree <- length(subhe$Household)
         valueBox(value = sum_tree,
                  icon = icon ('tree'),
