@@ -43,33 +43,33 @@ ui <- dashboardPage(
         tabItems(
             tabItem(
                 tabName="testdata_19",
-              fluidRow(
-                  column(4,
-                         selectInput(inputId = "Household",
-                                     label = "Choose a Household",
-                                     choices = c ('All',unique(dat$Household)),
-                                     selected = 'All'),
-                         radioButtons(inputId = "Graph",
-                                      label = "Choose a graph",
-                                      choices = c("Carbon sequestered","Carbon payments", "Number of trees"),
-                                      selected = "Carbon sequestered"),
-                         br(),
-                         valueBoxOutput("tot_carb", width = '100%'),
-                         br(),
-                         
-                         valueBoxOutput("tot_money", width = '100%'),
-                         br(),
-                         
-                         valueBoxOutput("tot_tree", width = '100%')
-                         ),
-                  
-                  column(8, 
-                         br (),
-                         br (),
-                         br (),
-                         br (),
-                         plotOutput("Household"))
-              )
+                fluidRow(
+                    column(4,
+                           selectInput(inputId = "Household",
+                                       label = "Choose a Household",
+                                       choices = c ('All',unique(dat$Household)),
+                                       selected = 'All'),
+                           radioButtons(inputId = "Graph",
+                                        label = "Choose a graph",
+                                        choices = c("Carbon sequestered","Carbon payments", "Number of trees"),
+                                        selected = "Carbon sequestered"),
+                           br(),
+                           valueBoxOutput("tot_carb", width = '100%'),
+                           br(),
+                           
+                           valueBoxOutput("tot_money", width = '100%'),
+                           br(),
+                           
+                           valueBoxOutput("tot_tree", width = '100%')
+                    ),
+                    
+                    column(8, 
+                           br (),
+                           br (),
+                           br (),
+                           br (),
+                           plotOutput("Household"))
+                )
             ),
             tabItem(
                 tabName="Regression",
@@ -80,10 +80,10 @@ ui <- dashboardPage(
                                        label = "Choose a Household",
                                        choices = c ('All',unique(dat$Household)),
                                        selected = 'All'),
-                    column(12, 
-                           plotOutput("Regression"))
-                )
-            ),
+                           column(12, 
+                                  plotOutput("Regression"))
+                    )
+                ),
                 
                 
             ),
@@ -97,7 +97,7 @@ ui <- dashboardPage(
                              target='_blank', 'DataLab'),
                            align = 'center'),
                         p('Sewanee is in collaboration with the Haitian organization, Zanmi Agrikol, to incentivize 50 family farmers to grow trees instead of selling material for coal through payments made by the Sewanee Green Fund. The payments reflect the carbon sequestration of the planted trees which is quantified and analyzed by our DataLab team. The addition of these trees provides a shade canopy and enriches the soil with nutrients, enabling farmers to establish more sustainable regenerative coffee-based agroecosystems (agroforests).', align = 'center'),
-    div(a(actionButton(inputId = "email", label = "info@databrew.cc",
+                        div(a(actionButton(inputId = "email", label = "info@databrew.cc",
                                            icon = icon("envelope", lib = "font-awesome")),
                               href="mailto:info@databrew.cc",
                               align = 'center')),
@@ -112,25 +112,22 @@ ui <- dashboardPage(
 server <- function(input, output) {
     
     output$Regression <- renderPlot({
-        he <- input$Household
-        subreg <- if (he == 'All'){
-            dat %>% 
-                group_by (Species)
-                
-            
-           }
-        else {
-            dat %>%
-                filter (Household == he) %>%
-                group_by (Species)
-                
-            
+        he <- input$Regress
+        if (he == 'All'){
+            message('he is all')
+            subreg <-     
+                dat 
         }
-                
+        else {
+            message('he is ', he)
+            subreg <- dat %>%
+                filter (Household == he) 
+        }
+        
         ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
-                   geom_point()+
-                    geom_smooth(method = lm) +
-                    facet_wrap(~Species)
+            geom_point()+
+            geom_smooth(method = lm) +
+            facet_wrap(~Species)
     })
     
     output$tot_carb <- renderValueBox({
@@ -163,20 +160,20 @@ server <- function(input, output) {
     })
     
     output$Household <- renderPlot({
-
+        
         he <- input$Household
         graph <- input$Graph
         
         # create plot based on households. 
         subhe <- if (he == 'All') {
-                dat  %>%
+            dat  %>%
                 group_by( Species ) %>% 
                 summarize( Carbon = sum(Calculations))
         } else {
             dat  %>%
                 filter(Household == he) %>% 
-            group_by( Species ) %>% 
-            summarize( Carbon = sum(Calculations))
+                group_by( Species ) %>% 
+                summarize( Carbon = sum(Calculations))
         }
         
         payments <- if (he == 'All') {
@@ -201,20 +198,20 @@ server <- function(input, output) {
                 group_by( Species ) %>%
                 summarise(Tre = length(Household))
         }
-            
+        
         
         if(input$Graph=='Carbon sequestered'){
             ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
-            geom_col(position = 'dodge') +
-            geom_text( aes(label=round(Carbon,3)), vjust=0) +
-            labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
-    }
-    else if (input$Graph == 'Carbon payments'){
-        ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
-            geom_col(position = 'dodge') +
-            geom_text( aes(label=round(Pay,2)), vjust=0) +
-            labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
-    }
+                geom_col(position = 'dodge') +
+                geom_text( aes(label=round(Carbon,3)), vjust=0) +
+                labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+        }
+        else if (input$Graph == 'Carbon payments'){
+            ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
+                geom_col(position = 'dodge') +
+                geom_text( aes(label=round(Pay,2)), vjust=0) +
+                labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
+        }
         else if (input$Graph == 'Number of trees'){
             ggplot(data = Num_Tree, aes(x = Species, y = Tre, fill = Species))+
                 geom_col(position = 'dodge') +
