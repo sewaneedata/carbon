@@ -6,8 +6,6 @@ library(ggplot2)
 
 dat <- read.csv('dat.csv')
 
-# delete this next line
-dat$year[25:50] <- 2021
 
 # write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 # pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
@@ -87,16 +85,15 @@ ui <- dashboardPage(
                                        choices = c("2019", "2021"),
                                        selected = c("2019", "2021"),
                                        multiple = TRUE),
-                           # put a uiOutput here and then put the selectInput 
-                           # in a renderUI
-                           selectInput(inputId = "household_regress",
-                                       label = "Choose a Household",
-                                       choices = c ('All',unique(dat$Household)),
-                                       selected = 'All'),
+                           uiOutput('regression_ui')),
+                           # selectInput(inputId = "household_regress",
+                           #             label = "Choose a Household",
+                           #             choices = c ('All',unique(dat$Household)),
+                           #             selected = 'All'),
                            
                            column(12, 
-                                  plotOutput("Regression"))
-                    )
+                                  plotOutput("regression_plot"))
+                    
                 ),
                 
                 
@@ -141,26 +138,53 @@ server <- function(input, output) {
         
         
     })
-    
-    output$Regression <- renderPlot({
-        he <- input$household_regress
-        datyear_reg <- dat %>% filter(year %in% input$year_regress)
-        if (he == 'All'){
-            message('he is all')
-            subreg <-     
-                datyear_reg 
-        }
-        else {
-            message('he is ', he)
-            subreg <- dat %>%
-                filter (Household == he) 
+    output$regression_ui <- renderUI({
+        
+        sub_dat <- dat %>% filter(year %in% input$year_regress)
+        hh_choices <- sort(unique(sub_dat$Household))
+        if(length(hh_choices) > 0){
+            hh_choices <- c('All', hh_choices)
+            selectInput(inputId = "household_regress",
+                        label = "Choose a Household",
+                        choices = hh_choices,
+                        multiple = FALSE)
+        } else {
+            h3('No households for the year(s) selected')
         }
         
-        ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
-            geom_point()+
-            geom_smooth(method = lm) +
-            facet_wrap(~Species)+
-            labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
+        
+    })
+    
+    output$regression_plot <- renderPlot({
+        he <- input$household_regress
+        datyear_reg <- dat %>% filter(year %in% input$year_regress)
+        
+        ok <- FALSE
+        if(!is.null(he)){
+            ok <- TRUE
+        }
+        
+
+        if(ok){
+            if (he == 'All'){
+                message('he is all')
+                subreg <-     
+                    datyear_reg 
+            } else {
+                message('he is ', he)
+                subreg <- datyear_reg %>%
+                    filter (Household == he) 
+            }
+            if(nrow(subreg) > 0){
+                ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
+                    geom_point()+
+                    geom_smooth(method = lm) +
+                    facet_wrap(~Species)+
+                    labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
+            }
+                
+        }
+        
     })
     
     output$tot_carb <- renderValueBox({
@@ -213,62 +237,70 @@ server <- function(input, output) {
         he <- input$Household
         graph <- input$Graph
         
-        # create plot based on households. 
-        subhe <- if (he == 'All') {
-            datyear  %>%
-                group_by( Species ) %>% 
-                summarize( Carbon = sum(Calculations))
-        } else {
-            datyear  %>%
-                filter(Household == he) %>% 
-                group_by( Species ) %>% 
-                summarize( Carbon = sum(Calculations))
+        ok <- FALSE
+        if(!is.null(he)){
+            ok <- TRUE
+        }
+        if(ok){
+            # create plot based on households. 
+            subhe <- if (he == 'All') {
+                datyear  %>%
+                    group_by( Species ) %>% 
+                    summarize( Carbon = sum(Calculations))
+            } else {
+                datyear  %>%
+                    filter(Household == he) %>% 
+                    group_by( Species ) %>% 
+                    summarize( Carbon = sum(Calculations))
+            }
+            
+            payments <- if (he == 'All') {
+                datyear  %>%
+                    group_by( Species ) %>%
+                    summarise(Pay = (sum(Calculations)*50))
+            } else {
+                datyear %>%
+                    filter(Household == he)%>%
+                    group_by( Species ) %>%
+                    summarise(Pay = (sum(Calculations)*50))
+            }
+            
+            
+            Num_Tree <- if (he == 'All') {
+                datyear  %>%
+                    group_by( Species ) %>%
+                    summarise(Tre = length(Household))
+            } else {
+                datyear %>%
+                    filter(Household == he)%>%
+                    group_by( Species ) %>%
+                    summarise(Tre = length(Household))
+            }
+            
+            
+            if(input$Graph=='Carbon sequestered'){
+                ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
+                    geom_col(position = 'dodge') +
+                    geom_text( aes(label=round(Carbon,3)), vjust=0) +
+                    labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+            }
+            else if (input$Graph == 'Carbon payments'){
+                ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
+                    geom_col(position = 'dodge') +
+                    geom_text( aes(label=round(Pay,2)), vjust=0) +
+                    labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
+            }
+            else if (input$Graph == 'Number of trees'){
+                ggplot(data = Num_Tree, aes(x = Species, y = Tre, fill = Species))+
+                    geom_col(position = 'dodge') +
+                    geom_text( aes(label=Tre, vjust=0)) +
+                    labs(title = paste0('Number of Trees for Household ',he), x = 'Species', y = 'Number of Trees') + ggthemes::theme_economist() + theme (legend.position = 'none')
+            }
+            
+        }    
         }
         
-        payments <- if (he == 'All') {
-            datyear  %>%
-                group_by( Species ) %>%
-                summarise(Pay = (sum(Calculations)*50))
-        } else {
-            datyear %>%
-                filter(Household == he)%>%
-                group_by( Species ) %>%
-                summarise(Pay = (sum(Calculations)*50))
-        }
         
-        
-        Num_Tree <- if (he == 'All') {
-            datyear  %>%
-                group_by( Species ) %>%
-                summarise(Tre = length(Household))
-        } else {
-            datyear %>%
-                filter(Household == he)%>%
-                group_by( Species ) %>%
-                summarise(Tre = length(Household))
-        }
-        
-        
-        if(input$Graph=='Carbon sequestered'){
-            ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
-                geom_col(position = 'dodge') +
-                geom_text( aes(label=round(Carbon,3)), vjust=0) +
-                labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
-        }
-        else if (input$Graph == 'Carbon payments'){
-            ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
-                geom_col(position = 'dodge') +
-                geom_text( aes(label=round(Pay,2)), vjust=0) +
-                labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
-        }
-        else if (input$Graph == 'Number of trees'){
-            ggplot(data = Num_Tree, aes(x = Species, y = Tre, fill = Species))+
-                geom_col(position = 'dodge') +
-                geom_text( aes(label=Tre, vjust=0)) +
-                labs(title = paste0('Number of Trees for Household ',he), x = 'Species', y = 'Number of Trees') + ggthemes::theme_economist() + theme (legend.position = 'none')
-        }
-        
-    }
     )
 }
 
