@@ -3,6 +3,7 @@ library(shinydashboard)
 library(dplyr)
 library(shinythemes)
 library(ggplot2)
+library(plotly)
 
 dat <- read.csv('dat.csv')
 
@@ -92,7 +93,7 @@ ui <- dashboardPage(
                            #             selected = 'All'),
                            
                            column(12, 
-                                  plotOutput("regression_plot"))
+                                  plotlyOutput("regression_plot"))
                     
                 ),
                 
@@ -155,7 +156,7 @@ server <- function(input, output) {
         
     })
     
-    output$regression_plot <- renderPlot({
+    output$regression_plot <- renderPlotly({
         he <- input$household_regress
         datyear_reg <- dat %>% filter(year %in% input$year_regress)
         
@@ -176,11 +177,15 @@ server <- function(input, output) {
                     filter (Household == he) 
             }
             if(nrow(subreg) > 0){
-                ggplot(data = subreg, aes(x = log(diam_cm), y = log(Height_m))) +
+                p <- ggplot(data = subreg, aes(x = log(diam_cm), 
+                                               y = log(Height_m),
+                                              )) +
                     geom_point()+
                     geom_smooth(method = lm) +
                     facet_wrap(~Species)+
                     labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
+                ggplotly(p,
+                         tooltip = 'id')
             }
                 
         }
