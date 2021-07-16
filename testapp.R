@@ -157,6 +157,8 @@ server <- function(input, output) {
     })
     
     output$regression_plot <- renderPlotly({
+        df_lm <- lm(dat$Height_m~dat$diam_cm)
+        r2 <- summary(df_lm)$r.squared
         he <- input$household_regress
         datyear_reg <- dat %>% filter(year %in% input$year_regress)
         
@@ -183,9 +185,12 @@ server <- function(input, output) {
                     geom_point()+
                     geom_smooth(method = lm) +
                     facet_wrap(~Species)+
-                    labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
-                ggplotly(p,
-                         tooltip = 'id')
+                    labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')+
+                    annotate("text", x=.5, y=4,
+                             label= paste("R^2 =",round(r2,digits=3)),
+                             parse=TRUE, size = 3)
+                # ggplotly(p,
+                #          tooltip = 'id')
             }
                 
         }
