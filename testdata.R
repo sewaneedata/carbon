@@ -1,32 +1,37 @@
+#Zanmi Kafe R-Script:
+
+#Hello person working on this. The three lines bellow are the packages that We used for this sheet. Run these three lines of code, if they don't work then type in install.packages and put in the name of the pacages in that function. After that, run these again. 
 library (dplyr)
 library(googlesheets4)
 library (tidyr)
+############################################################################################
+#READING IN THE DATA:
 
-# This converts each spreadsheet into a data frame and compiles a list. 
+# This is a for loop that reads in the data from a Google sheet and puts it into R. You have to do this for loop for each spreadsheet used. The 2019 data is annotates for where values need to be changed for inputting data in later years.   
+
+#-------------------------------------------------------------------------------------------
+#For loop and data editing for 2019 data:
 
 data_list <- list()
+#For the code on the line bellow, use the numbers to indicate which Google sheets are read in. Our data for the 2019 sheet had household one start on sheet 5 and end on sheet 54. 
 sheet_numbers <- 5:54
 for(i in 1:length(sheet_numbers)){
   sheet_id <- sheet_numbers[i]
+#This is the place where we entered the Google sheet link to the 2019 data. 
   temp <- read_sheet('https://docs.google.com/spreadsheets/d/1QMTqhd-llPQH_2AfaiV6klHXpe1alPE7Eo85UU82sP0/edit?usp=sharing', sheet = sheet_id)
+#The code on the line below indicates which columns you want to read in. For the 2019 data we wanted to read in the first six columns on the each household spreadsheet. Make sure that the names of the columns are the same on all Google spreadsheets used. You will run into issues if the names or orders of columns are different. 
   temp <- temp[,1:6]
   data_list[[i]] <- temp
 }
-
 #This binds the lists into one data frame (we are calling it 'dat')
-
 dat <- do.call('rbind', data_list)
 
-
 #This removes the N/A from 'dat'. 
-
 dat <- dat %>% drop_na()
-
 nrow(dat)
 dat <- dat[complete.cases(dat),]
 
-#In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe. 
-
+#In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
 dat <- dat %>%
   mutate(Species = case_when(
     Species == 'Akajou'~ 'A',
@@ -41,32 +46,11 @@ dat <- dat %>%
     Species == 'KK' ~ 'KK'
   ))
 
-
-
-#This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. 
-
+#This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need. 
 dat <- dat %>% 
-  select(Household, Species, Height_m = 'H (m)', Height_cm = 'Height (cm)', diam_mm = 'diam (mm)', diam_cm = 'dbh (cm)' )
+  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)' )
 
-# Taking out columns that we don't need. 
-dat <- dat %>%
-  select(-Height_cm)
-dat <- dat %>%
-  select(-diam_mm)
-
-
-# ==============================
-# Create fake data
-house <- c(rep(1,times=5),
-           rep(2,times=5))
-diameter <- runif(10,20,50)
-trees <- data.frame(dat$Household, dat$diam_cm)
-trees # check it out
-head(dat)
-# ==============================
-# Now assign an ID to each tree
-# but only has to be unique for each household
-# Get unique values for the `house` column
+#This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame. 
 houses <- unique(dat$Household) ; houses
 i=1 # define i to help build for loop
 ids <- c() # stage an empty vector for placing id's
@@ -74,16 +58,28 @@ ids <- c() # stage an empty vector for placing id's
 for(i in 1:length(houses)){ # begin for loop
   housi <- houses[i] ; housi # determine the house corresponding to this value of i
   treesi <- dat[dat$Household == housi,] ; treesi # subset data to only entries for this house
-  idi <- 1:nrow(treesi) ; idi # create a list of ids for trees belonding to this house
+  idi <- 1:nrow(treesi) ; idi # create a list of ids for trees belonging to this house
   ids <- c(ids, idi) # add these ids to the growing list of ids
 }
 
 ids
-dat$id <- ids # add these id's as a column to the dataframe
+dat$id <- ids # add these id's as a column to the data frame
 head(dat) # check it out
 
+# This adds a year column to the data for so multipal sheets can be bound together and have a year identifier. This needs to be done on all years of data. 
 dat <- dat%>%
   mutate(year = 2019)
+#-------------------------------------------------------------------------------------------
+
+#For loop and data editing for 2021 data:
+
+
+############################################################################################
+#EQUATIONS
+#The first three equations are ones that Dr. McGrath found. For each equation, the last name of the author in the paper the equations was found is listed first, and the name of the tree the equation goes with is listed second. 
+
+#-------------------------------------------------------------------------------------------
+#McGrath Eeuations: 
 
 # This is the green equation on Dr. McGrath's spreadsheet.  
 
@@ -147,7 +143,9 @@ TFTF <- function(d,h){
 # dat <- dat %>% 
 #   select(-TFTF)
 
+#-------------------------------------------------------------------------------------------
 
+#Equations that we found 
 
 #This is our found equation for Mango. The final answer is given in tons. INCLUDES ABOVE AND BELOW GROUND BIOMASS!
 
@@ -232,7 +230,9 @@ Padjung_Coffee <- function(d){
 
 # dat <- dat %>%
 #   select(-Coffee)
+#-------------------------------------------------------------------------------------------
 
+#BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD. 
 
 # This is the code that binds all the equations together into one column based off of the tree species. 
 dat <- dat %>% 
@@ -245,21 +245,9 @@ dat <- dat %>%
                                   )
   )
 
+############################################################################################
 
-
-# dat <- dat %>%
-#   mutate(diff = cole_ewel - Calculations)
-# 
-# dat <- dat %>%
-#   mutate(perc = (((cole_ewel - Calculations)/cole_ewel)*100))
-# 
-# look <- dat %>%
-#   group_by(Species)%>%
-#   summarise(avg_height = mean(Height_m)) 
-
-
-
-#GGPLOT STUFF FOR SHINYAPP
+#READ THIS ALL INTO A CSV FILE TO PASS TO THE SHINEY DASHBOARD R SCRIPT
 
 # This is some code that was used to help with our shiney app
 write.csv(dat, '~/Documents/datascience/carbon/dat.csv',
