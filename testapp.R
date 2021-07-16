@@ -93,7 +93,7 @@ ui <- dashboardPage(
                            #             selected = 'All'),
                            
                            column(12, 
-                                  plotlyOutput("regression_plot"))
+                                  plotOutput("regression_plot"))
                     
                 ),
                 
@@ -156,11 +156,13 @@ server <- function(input, output) {
         
     })
     
-    output$regression_plot <- renderPlotly({
+    output$regression_plot <- renderPlot({
         df_lm <- lm(dat$Height_m~dat$diam_cm)
         r2 <- summary(df_lm)$r.squared
         he <- input$household_regress
         datyear_reg <- dat %>% filter(year %in% input$year_regress)
+        
+        # save(df_lm, r2, he, datyear_reg, file = '/tmp/katebaker.Rdata')
         
         ok <- FALSE
         if(!is.null(he)){
@@ -179,18 +181,37 @@ server <- function(input, output) {
                     filter (Household == he) 
             }
             if(nrow(subreg) > 0){
-                p <- ggplot(data = subreg, aes(x = log(diam_cm), 
-                                               y = log(Height_m),
-                                              )) +
-                    geom_point()+
-                    geom_smooth(method = lm) +
+                
+                # Create a dataframe for storing r^2 values:
+                r2df <- tibble(Species = sort(unique(subreg$Species))) %>%
+                    mutate(r2 = NA)
+                
+                # loop through each species (ie, each row in r2df) and calculate r2
+                for(i in 1:nrow(r2df)){
+                    the_species <- r2df$Species[i]
+                    species_subreg <- subreg %>%
+                        filter(Species == the_species)
+                    species_mod <- lm(Height_m ~ diam_cm, data = species_subreg)
+                    r2 <- summary(species_mod)$r.squared
+                    r2df$r2[i] <- r2
+                }
+                
+                # Bring r2 values into subreg
+                subreg <- left_join(subreg, r2df)
+                subreg <- subreg %>%
+                    mutate(Species = paste0(Species, ' (R-squared: ', round(r2, digits = 2), ')'))
+                
+                ggplot(data = subreg, 
+                       aes(x = log(diam_cm), 
+                           y = log(Height_m),
+                       )) +
+                    geom_point(size = 0.2, alpha = 0.5)+
+                    geom_smooth(method = lm, se = FALSE, color = 'Purple') +
                     facet_wrap(~Species)+
-                    labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')+
-                    annotate("text", x=.5, y=4,
-                             label= paste("R^2 =",round(r2,digits=3)),
-                             parse=TRUE, size = 3)
-                # ggplotly(p,
-                #          tooltip = 'id')
+                    labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
+                    # annotate("text", x=.5, y=4,
+                    #          label= paste("R^2 =",round(r2df$r2,digits=3)),
+                    #          parse=TRUE, size = 3)
             }
                 
         }
@@ -199,41 +220,83 @@ server <- function(input, output) {
     
     output$tot_carb <- renderValueBox({
         he <- input$Household
+        iyear <- input$year
+        
         subhe <- dat
-        if(he != "All"){
-        subhe <- dat %>%
-            filter(Household == he)
+        
+        if(!is.null(iyear)){
+            subhe <- subhe %>% filter(year %in% iyear)
         }
         
-        subhe <- subhe %>% filter(year %in% input$year)
+        if(!is.null(he)){
+            if(he != "All"){
+                subhe <- subhe %>%
+                    filter(Household == he)
+            }
+        }
         
+        # 
+        # 
         sum_calc <- sum(subhe$Calculations,na.rm=TRUE)
-        valueBox(value = round(sum_calc, 3),
-                 icon = icon ('globe'),
-                 subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua' )
+        
+        if(is.null(sum_calc)){
+            the_title <- ' '
+        } else {
+            sum_calc <- round(sum_calc, digits = 3)
+            the_title <- as.character(sum_calc)
+        }
+        
+        valueBox(
+            the_title,
+            he,
+            icon = icon ('globe'),
+            subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua' 
+        )
     })
+    
     output$tot_money <- renderValueBox({
         he <- input$Household
+        iyear <- input$year
         subhe <- dat
-        if(he != "All"){
-            subhe <- dat %>%
-                filter(Household == he)
+        
+        if (!is.null(he)){
+            if(he != "All"){
+                subhe <- subhe %>%
+                    filter(Household == he)
+            }    
         }
-        subhe <- subhe %>% filter(year %in% input$year)
+        
+        if(!is.null(iyear)){
+            subhe <- subhe %>% filter(year %in% iyear)    
+        }
+        
         sum_calc <- (sum(subhe$Calculations))*50
-        valueBox(value = paste0 ('$', round(sum_calc,2)),
+        if(is.null(sum_calc)){
+            the_title <- ' '
+        } else {
+            the_title <- as.character(round(sum_calc,2))
+        }
+        
+        valueBox(value = paste0 ('$', the_title),
                  icon = icon ('dollar'),
                  subtitle = paste0('Total Money Paid to Household (USD)'), color = 'blue')
         
     })
     output$tot_tree <- renderValueBox({
         he <- input$Household
+        iyear <- input$year
         subhe <- dat
-        if(he != "All"){
-            subhe <- dat %>%
-                filter(Household == he)
+        
+        if(!is.null(he)){
+            if(he != "All"){
+                subhe <- subhe %>%
+                    filter(Household == he)
+            }    
         }
-        subhe <- subhe %>% filter(year %in% input$year)
+        if(!is.null(iyear)){
+            subhe <- subhe %>% filter(year %in% iyear)    
+        }
+        
         sum_tree <- length(subhe$Household)
         valueBox(value = sum_tree,
                  icon = icon ('tree'),
