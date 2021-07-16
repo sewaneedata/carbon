@@ -36,6 +36,9 @@ ui <- dashboardPage(
                 text = 'Regressions',
                 tabName = 'Regression'),
             menuItem(
+                text = 'Equations',
+                tabName = 'equations'),
+            menuItem(
                 text = 'About',
                 tabName = 'about')
         )),
@@ -206,7 +209,7 @@ server <- function(input, output) {
                            y = log(Height_m),
                        )) +
                     geom_point(size = 0.2, alpha = 0.5)+
-                    geom_smooth(method = lm, se = FALSE, color = 'Purple') +
+                    geom_smooth(method = lm, se = FALSE, color = 'Red') +
                     facet_wrap(~Species)+
                     labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
                     # annotate("text", x=.5, y=4,
