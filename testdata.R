@@ -164,7 +164,7 @@ TFTF <- function(d,h){
 #   select(-TFTF)
 #-------------------------------------------------------------------------------------------
 #Equations that we found 
-#This is our found equation for Mango. The final answer is given in tons. INCLUDES ABOVE AND BELOW GROUND BIOMASS!
+#This is our found equation for Mango. The final answer is given in tons. 
 Sharma_Mango <- function(d){
   Abovebiomass <- 34.4703 - 8.067*(d) + 0.6589*(d^2)
   BelowGroundBiomass <- Abovebiomass*1.2
@@ -181,7 +181,7 @@ Sharma_Mango <- function(d){
 # dat <- dat %>%
 #   select(-Mango)
 #This is the equation for the Mahogany tree. One thing to note about this equation is that it only calculates for above ground biomass and does not include below ground biomass. Ask dr. McGrath if we need to have both.
-#INCLUDES ONLY ABOVE GROUND BIOMASS
+
 Dickert_Mahogany <- function(d,h){
   Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
   BlowGround <- Abovebiomass *1.2
@@ -197,7 +197,7 @@ Dickert_Mahogany <- function(d,h){
 # 
 # dat <- dat %>%
 #   select(-Mahogany)
-# I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. INLCUDES ONLY THE ABOVE GROUND BIOMASS!
+# I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. 
 Cole_Cedrela <- function(d,h){
   Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
   BlowGround <- Abovebiomass *1.2
@@ -213,7 +213,7 @@ Cole_Cedrela <- function(d,h){
 # dat <- dat %>%
 #   select(-Cedrela)
 # This is the equation from the Padjung paper. This includes the trees but not the coffee beans or harvested coffee. This calculates the above ground and below ground biomass of the coffee tree. 
-# INCLUDES ABOVE AND BELOW GROUND BIOMASS!
+
 Padjung_Coffee <- function(d){
   Abovebiomass <- 0.11*0.62*(d)*2.62
   carbonTree <- Abovebiomass * 0.5
@@ -228,6 +228,56 @@ Padjung_Coffee <- function(d){
 #   mutate(Coffee = Padjung_Coffee(diam_cm))
 # dat <- dat %>%
 #   select(-Coffee)
+
+#This equations came from the Mexico paper. 
+Acosta_Coffee <- function(d){
+  Abovebiomass <- exp(-0.66)*((d)^1.37)
+  carbonTree <- Abovebiomass *0.5
+  BelowBiomass <- carbonTree*1.2
+  AGABGBiomass <- BelowBiomass + carbonTree
+  CO2equ_kg <- AGABGBiomass *3.6663
+  CO2equ_tons <- CO2equ_kg *0.001102
+  return(CO2equ_tons)
+}
+
+# This is the code that creates a new column in the data with the equation listed above.
+# dat <- dat %>%
+#   mutate(Acosta_Coffee = Acosta_Coffee(diam_cm))
+# dat <- dat %>%
+#   select(-Acosta_Coffee)
+
+#This equations is from the Cairns paper and gives a general equation for carbon.
+Cairns_General <- function(d,h){
+  Abovebiomass <- exp((-2.173+0.868)*(ln((d^2)*h)+0.09392))
+  carbonTree <- Abovebiomass *0.5
+  BelowBiomass <- carbonTree*1.2
+  AGABGBiomass <- BelowBiomass + carbonTree
+  CO2equ_kg <- AGABGBiomass *3.6663
+  CO2equ_tons <- CO2equ_kg *0.001102
+  return(CO2equ_tons)
+}
+
+# This is the code that creates a new column in the data with the equation listed above.
+# dat <- dat %>%
+#   mutate(Cairns_General = Cairns_General(diam_cm))
+# dat <- dat %>%
+#   select(-Cairns_General)
+
+#This equations is from the Chave paper and gives a general equation for carbon.
+Chave_General <- function(d,h){
+  Abovebiomass <- (0.0673)*((.42)*(d^2)*(h))^0.976
+  carbonTree <- Abovebiomass *0.5
+  BelowBiomass <- carbonTree*1.2
+  AGABGBiomass <- BelowBiomass + carbonTree
+  CO2equ_kg <- AGABGBiomass *3.6663
+  CO2equ_tons <- CO2equ_kg *0.001102
+  return(CO2equ_tons)
+}
+# This is the code that creates a new column in the data with the equation listed above.
+# dat <- dat %>%
+#   mutate(Chave_General = Chave_General(diam_cm))
+# dat <- dat %>%
+#   select(-Chave_General)
 #-------------------------------------------------------------------------------------------
 #BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD. 
 # This is the code that binds all the equations together into one column based off of the tree species. 
