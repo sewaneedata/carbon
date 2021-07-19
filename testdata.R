@@ -30,6 +30,7 @@ nineteendat <- nineteendat[complete.cases(nineteendat),]
 nineteendat$year <- 2019
 
 #This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame. 
+
 houses <- unique(nineteendat$Household) ; houses
 i=1 # define i to help build for loop
 ids <- c() # stage an empty vector for placing id's
@@ -43,8 +44,9 @@ ids
 nineteendat$id <- ids # add these id's as a column to the data frame
 head(dat) # check it out
 #This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need. 
-nineteendat <- nineteendat %>% 
-  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
+
+# nineteendat <- nineteendat %>% 
+#   select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
 
 
 
@@ -120,7 +122,7 @@ dat <- dat %>% drop_na()
 dat <- dat[complete.cases(dat),]
 
 #This removes stuff from our enviernment thar we don't need. 
-rm(brew_list, data_listtwentyone, nineteendat, temptwentyone, this_data, treesi, twentyonedat, houses, housi, i, idi, ids, sheet_id, sheet_numbers)
+rm(brew_list, data_listtwentyone, nineteendat, temptwentyone, this_data, treesi, twentyonedat, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
 
 
 
