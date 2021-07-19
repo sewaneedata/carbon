@@ -106,16 +106,24 @@ ui <- dashboardPage(
                 tabName = 'about',
                 fluidPage(
                     fluidRow(
-                        div(img(src='logo_clear.png', align = "center"), style="text-align: center;"),
-                        h4('Built in partnership with ',
+                        div(img(src='Man.png', height = 200, width = 400, align = "center"), style="text-align: center;"),
+                        h2('Built in partnership with ',
                            a(href = 'http://datalab.sewanee.edu',
                              target='_blank', 'DataLab'),
                            align = 'center'),
                         p('Sewanee is in collaboration with the Haitian organization, Zanmi Agrikol, to incentivize 50 family farmers to grow trees instead of selling material for coal through payments made by the Sewanee Green Fund. The payments reflect the carbon sequestration of the planted trees which is quantified and analyzed by our DataLab team. The addition of these trees provides a shade canopy and enriches the soil with nutrients, enabling farmers to establish more sustainable regenerative coffee-based agroecosystems (agroforests).', align = 'center'),
-                        div(a(actionButton(inputId = "email", label = "info@databrew.cc",
-                                           icon = icon("envelope", lib = "font-awesome")),
-                              href="mailto:info@databrew.cc",
+                        div(a(actionButton(inputId = "github_link", label = "Zamni Kafe GitHub",
+                                           icon = icon("link", lib = "font-awesome")),
+                              href="https://github.com/sewaneedata/carbon/wiki",
                               align = 'center')),
+                        h4('Project Contributors',
+                           align = 'left'),
+                        p('- Kate Baker Class of 2022',
+                          align = 'left'), 
+                        p('- Nika Gorski Class of 2022',
+                          align = 'left'),
+                        p('- Caroline Willett Class of 2023', 
+                          align = 'left'),
                         style = 'text-align:center;'
                     )
                 )

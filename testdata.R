@@ -29,50 +29,6 @@ nineteendat <- nineteendat[complete.cases(nineteendat),]
 
 nineteendat$year <- 2019
 
-# Repeat these steps to read in and bind 2021 dataset
-#Entered in Google sheet link to the 2021 data
-data_listtwentyone <- list ()
-sheet_numbers <- 1:50
-for(i in 1:length(sheet_numbers)){
-  sheet_id <- sheet_numbers[i]
-  message('fonna read ', sheet_id)
-  temptwentyone <- read_sheet ('https://docs.google.com/spreadsheets/d/10AIlsE5MR-0I7kzj__s2g6uOrjIvRm3pixnQZ2-FB4c/edit?usp=sharing', sheet = sheet_id)
-  temptwentyone <- temptwentyone [,1:5]
-  data_listtwentyone [[i]] <- temptwentyone
-}
-# # see if household is duplicated in any data frame
-# for(i in 1:length(data_listtwentyone)){
-#     this_data <- data_listtwentyone[[i]]
-#     the_names <- names(this_data)
-#     h_names <- grepl('Household', the_names)
-#     if(length(which(h_names)) > 1){
-#         print(i)
-#     }
-# }
-brew_list <- list()
-for(i in 1:length(data_listtwentyone)){
-  this_data <- data_listtwentyone[[i]]
-  if(is.list(this_data$Height_cm)){
-    this_data$Height_cm <- as.numeric(gsub('cm', '', this_data$Height_cm))
-  }
-  if(is.list(this_data$Diam_mm)){
-    this_data$Diam_mm <- as.numeric(gsub('cm|mm', '', this_data$Diam_mm))
-  }
-  names(this_data) <- gsub('Household number|Household_number', 'Household', names(this_data))
-  brew_list[[i]] <- this_data
-}
-twentyonedat <- bind_rows(brew_list)
-twentyonedat <- twentyonedat %>% select (-Diam_mm)
-twentyonedat <- twentyonedat %>%
-  rename (id = Tree, 
-          diam_cm = Diam_corr_cm)
-twentyonedat <- twentyonedat %>%
-  mutate (year = 2021,
-          Height_m = Height_cm / 100) 
-twentyonedat <- twentyonedat %>%
-  select (-Height_cm)
-library(readr)
-# this is where we ran to! stop here and examine before binding datasets
 #This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame. 
 houses <- unique(nineteendat$Household) ; houses
 i=1 # define i to help build for loop
@@ -88,11 +44,88 @@ nineteendat$id <- ids # add these id's as a column to the data frame
 head(dat) # check it out
 #This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need. 
 nineteendat <- nineteendat %>% 
-  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)' )
+  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
+
+
+
+
+
+
+
+
+# Repeat these steps to read in and bind 2021 dataset
+#Entered in Google sheet link to the 2021 data
+data_listtwentyone <- list ()
+sheet_numbers <- 1:50
+for(i in 1:length(sheet_numbers)){
+  sheet_id <- sheet_numbers[i]
+  message('fonna read ', sheet_id)
+  temptwentyone <- read_sheet ('https://docs.google.com/spreadsheets/d/10AIlsE5MR-0I7kzj__s2g6uOrjIvRm3pixnQZ2-FB4c/edit#gid=1958132654', sheet = sheet_id)
+  temptwentyone <- temptwentyone [,1:5]
+  data_listtwentyone [[i]] <- temptwentyone
+}
+
+
+# # see if household is duplicated in any data frame
+# for(i in 1:length(data_listtwentyone)){
+#     this_data <- data_listtwentyone[[i]]
+#     the_names <- names(this_data)
+#     h_names <- grepl('Household', the_names)
+#     if(length(which(h_names)) > 1){
+#         print(i)
+#     }
+# }
+brew_list <- list()
+for(i in 1:length(data_listtwentyone)){
+  this_data <- data_listtwentyone[[i]]
+  if(is.list(this_data$Height_cm)){
+    this_data$Height_cm <- as.numeric(gsub('cm', '', this_data$Height_cm))
+  }
+
+  if(is.list(this_data$Diam_mm)){
+    this_data$Diam_mm <- as.numeric(gsub('cm|mm', '', this_data$Diam_mm))
+  }
+  if(is.list(this_data$Diam_corr_cm)){
+    this_data$Diam_corr_cm <- as.numeric(gsub('cm|mm', '', this_data$Diam_corr_cm))
+  }
+  names(this_data) <- gsub('Household number|Household_number', 'Household', names(this_data))
+  if(is.list(this_data$Household)){
+    this_data$Household <- as.numeric(unlist(this_data$Household))
+  }
+  if(is.list(this_data$Tree)){
+    this_data$Tree <- as.numeric(unlist(this_data$Tree))
+  }
+  brew_list[[i]] <- this_data
+}
+twentyonedat <- bind_rows(brew_list)
+twentyonedat <- twentyonedat %>% select (-Diam_mm)
+twentyonedat <- twentyonedat %>%
+  rename (id = Tree, 
+          diam_cm = Diam_corr_cm)
+twentyonedat <- twentyonedat %>%
+  mutate (year = 2021,
+          Height_m = Height_cm / 100) 
+twentyonedat <- twentyonedat %>%
+  select (-Height_cm)
+library(readr)
+# this is where we ran to! stop here and examine before binding datasets
+
 
 
 ################### Combine 2019 and 2021 data
 dat <-bind_rows(nineteendat, twentyonedat)
+
+#This removes the N/A from 'dat'. 
+dat <- dat %>% drop_na()
+dat <- dat[complete.cases(dat),]
+
+#This removes stuff from our enviernment thar we don't need. 
+rm(brew_list, data_listtwentyone, nineteendat, temptwentyone, this_data, treesi, twentyonedat, houses, housi, i, idi, ids, sheet_id, sheet_numbers)
+
+
+
+
+
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
 dat <- dat %>%
   mutate(Species = case_when(
@@ -286,8 +319,8 @@ dat <- dat %>%
   mutate(Calculations = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
                                   Species == 'A' ~ Dickert_Mahogany(diam_cm, Height_m),
                                   Species == 'C' ~ Cole_Cedrela(diam_cm, Height_m),
-                                  Species == 'K' ~ Padjung_Coffee(diam_cm),
-                                  Species == 'KK' ~ Padjung_Coffee(diam_cm)
+                                  Species == 'K' ~ Acosta_Coffee(diam_cm),
+                                  Species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
 ############################################################################################
