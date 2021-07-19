@@ -6,7 +6,7 @@ library(ggplot2)
 library(plotly)
 
 dat <- read.csv('dat.csv')
-View(dat)
+
 
 # write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 # pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)
@@ -237,6 +237,8 @@ server <- function(input, output) {
         
         if(!is.null(iyear)){
             subhe <- subhe %>% filter(year %in% iyear)
+        }else{
+            subhe <- data.frame(Household="",Calculations=0)
         }
         
         if(!is.null(he)){
@@ -279,6 +281,8 @@ server <- function(input, output) {
         
         if(!is.null(iyear)){
             subhe <- subhe %>% filter(year %in% iyear)    
+        }else{subhe<- data.frame(Household = "", Calculations =0)
+            
         }
         
         sum_calc <- (sum(subhe$Calculations))*50
@@ -306,6 +310,8 @@ server <- function(input, output) {
         }
         if(!is.null(iyear)){
             subhe <- subhe %>% filter(year %in% iyear)    
+        }else{subhe <- data.frame()
+            
         }
         
         sum_tree <- length(subhe$Household)

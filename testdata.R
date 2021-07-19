@@ -45,8 +45,8 @@ nineteendat$id <- ids # add these id's as a column to the data frame
 head(dat) # check it out
 #This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need. 
 
-# nineteendat <- nineteendat %>% 
-#   select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
+nineteendat <- nineteendat %>%
+  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
 
 
 
@@ -117,12 +117,14 @@ library(readr)
 ################### Combine 2019 and 2021 data
 dat <-bind_rows(nineteendat, twentyonedat)
 
+dat <- dat %>% mutate(Species = toupper(Species))
+
 #This removes the N/A from 'dat'. 
 dat <- dat %>% drop_na()
 dat <- dat[complete.cases(dat),]
 
 #This removes stuff from our enviernment thar we don't need. 
-rm(brew_list, data_listtwentyone, nineteendat, temptwentyone, this_data, treesi, twentyonedat, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
+rm(brew_list, data_listtwentyone, temptwentyone, this_data, treesi, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
 
 
 
@@ -131,15 +133,15 @@ rm(brew_list, data_listtwentyone, nineteendat, temptwentyone, this_data, treesi,
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
 dat <- dat %>%
   mutate(Species = case_when(
-    Species == 'Akajou'~ 'A',
+    Species == 'AKAJOU'~ 'A',
     Species == 'A' ~ 'A',
-    Species == 'mango' ~ 'M',
+    Species == 'MANGO' ~ 'M',
     Species == 'M' ~ 'M',
-    Species == 'Kafe' ~ 'K',
+    Species == 'KAFE' ~ 'K',
     Species == 'K' ~ 'K',
-    Species == 'Ced' ~ 'C',
+    Species == 'CED' ~ 'C',
     Species == 'C' ~ 'C',
-    Species == 'New Kafe' ~ 'KK',
+    Species == 'NEW KAFE' ~ 'KK',
     Species == 'KK' ~ 'KK'
   ))
 #-------------------------------------------------------------------------------------------
@@ -158,7 +160,7 @@ cole_ewel <- function(d,h){
   return(CO2equ_tons)
 }
 
-cole_ewel(7.8,.18)
+
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
 # dat <- dat %>%
 # mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
@@ -172,9 +174,10 @@ chave <- function(d,h){
   ABBiomass <- Abovebiomass * 1.2
   carbon <- ABBiomass * 0.5
   CO2equ <- carbon *3.6663
-  return(CO2equ)
+  CO2equ_tons <- CO2equ *0.001102
+  return(CO2equ_tons)
 }
-chave(7.8, .18)
+
 # This is the code that creates a new column in the data with the equation from the chave paper (blue equation).
 
 dat <- dat %>%
@@ -191,9 +194,10 @@ TFTF <- function(d,h){
   ABBiomass <- Mass*1.2
   carbon <- ABBiomass * 0.5
   CO2equ <- carbon *3.6663
-  return(CO2equ)
+  CO2equ_tons <- CO2equ *0.001102
+  return(CO2equ_tons)
 }
-TFTF(7.8, .18)
+
 # 
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
@@ -324,14 +328,58 @@ Chave_General <- function(d,h){
 dat <- dat %>% 
   select(Household, Species, diam_cm, Height_m, id, year) %>% 
   mutate(Calculations = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
-                                  Species == 'A' ~ Dickert_Mahogany(diam_cm, Height_m),
-                                  Species == 'C' ~ Cole_Cedrela(diam_cm, Height_m),
+                                  Species == 'A' ~ Chave_General(diam_cm, Height_m),
+                                  Species == 'C' ~ Chave_General(diam_cm, Height_m),
                                   Species == 'K' ~ Acosta_Coffee(diam_cm),
                                   Species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
+
+
+# #GREEN
+# dat <- dat %>% 
+#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
+#   mutate(Calculations = case_when(Species == 'M' ~ cole_ewel(diam_cm, Height_m),
+#                                   Species == 'A' ~ cole_ewel(diam_cm, Height_m),
+#                                   Species == 'C' ~ cole_ewel(diam_cm, Height_m),
+#                                   Species == 'K' ~ cole_ewel(diam_cm, Height_m),
+#                                   Species == 'KK' ~ cole_ewel(diam_cm, Height_m)
+#   )
+#   )
+# 
+# 
+# #BLUE
+# dat <- dat %>% 
+#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
+#   mutate(Calculations = case_when(Species == 'M' ~ chave(diam_cm, Height_m),
+#                                   Species == 'A' ~ chave(diam_cm, Height_m),
+#                                   Species == 'C' ~ chave(diam_cm, Height_m),
+#                                   Species == 'K' ~ chave(diam_cm, Height_m),
+#                                   Species == 'KK' ~ chave(diam_cm, Height_m)
+#   )
+#   )
+# 
+# #Orange
+# dat <- dat %>% 
+#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
+#   mutate(Calculations = case_when(Species == 'M' ~ TFTF(diam_cm, Height_m),
+#                                   Species == 'A' ~ TFTF(diam_cm, Height_m),
+#                                   Species == 'C' ~ TFTF(diam_cm, Height_m),
+#                                   Species == 'K' ~ TFTF(diam_cm, Height_m),
+#                                   Species == 'KK' ~ TFTF(diam_cm, Height_m)
+#   )
+#   )
+
+
+# #In 2021, house 33, 34, 37, 38,42
+# fix <- dat%>%
+#   mutate(LogHeight = log(Height_m))%>%
+#   filter(LogHeight <= -2.5)
+# 
+# table(fix$Household)
 ############################################################################################
 #READ THIS ALL INTO A CSV FILE TO PASS TO THE SHINEY DASHBOARD R SCRIPT
 # This is some code that was used to help with our shiney app
 #
+
 write_csv(dat, 'dat.csv')
