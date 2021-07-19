@@ -6,7 +6,7 @@ library(ggplot2)
 library(plotly)
 
 dat <- read.csv('dat.csv')
-
+View(dat)
 
 # write.csv(dat, '~/Documents/datascience/carbon/dat.csv')
 # pd <- dat %>% select(Household, Species, cole_ewel, chave, TFTF)

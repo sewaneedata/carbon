@@ -157,6 +157,8 @@ cole_ewel <- function(d,h){
   CO2equ_tons <- CO2equ *0.001102
   return(CO2equ_tons)
 }
+
+cole_ewel(7.8,.18)
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
 # dat <- dat %>%
 # mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
@@ -172,9 +174,11 @@ chave <- function(d,h){
   CO2equ <- carbon *3.6663
   return(CO2equ)
 }
-# This is the code that creates a new column in the data with the equation from the chave paper (blue equation). 
-# dat <- dat %>%
-#   mutate(chave = chave(diam_cm, Height_m))
+chave(7.8, .18)
+# This is the code that creates a new column in the data with the equation from the chave paper (blue equation).
+
+dat <- dat %>%
+  mutate(chave = chave(diam_cm, Height_m))
 # 
 # #I am going to take this out in favor for a more specific formula:
 # 
@@ -189,6 +193,7 @@ TFTF <- function(d,h){
   CO2equ <- carbon *3.6663
   return(CO2equ)
 }
+TFTF(7.8, .18)
 # 
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
