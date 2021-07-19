@@ -36,8 +36,8 @@ ui <- dashboardPage(
                 text = 'Regressions',
                 tabName = 'Regression'),
             menuItem(
-                text = 'Equations',
-                tabName = 'equations'),
+                text = 'Allometric Comparison',
+                tabName = 'allometric'),
             menuItem(
                 text = 'About',
                 tabName = 'about')
@@ -97,6 +97,29 @@ ui <- dashboardPage(
                            
                            column(12, 
                                   plotOutput("regression_plot"))
+                    
+                ),
+                
+                
+            ),
+            tabItem(
+                tabName="allometric",
+                h4('Compare Carbon Sequestration Using Different Equations'),
+                fluidRow(
+                    column(12,
+                           selectInput(inputId = "year_allometric",
+                                       label = "Choose a Year",
+                                       choices = c("2019", "2021"),
+                                       selected = c("2019", "2021"),
+                                       multiple = TRUE),
+                           selectInput(inputId = "species_allometric",
+                                       label = "Choose a Species",
+                                       choices = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                                       selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                                       multiple = TRUE),
+                           uiOutput('allometric_ui')),
+                    column(12, 
+                           plotOutput("allometric_plot"))
                     
                 ),
                 
