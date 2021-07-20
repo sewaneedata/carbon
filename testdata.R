@@ -23,6 +23,7 @@ for(i in 1:length(sheet_numbers)){
 dat <- do.call('rbind', data_list)
 nineteendat <- dat
 #This removes the N/A from 'dat'. 
+
 nineteendat <- nineteendat %>% drop_na()
 nrow(nineteendat)
 nineteendat <- nineteendat[complete.cases(nineteendat),]
@@ -162,8 +163,8 @@ cole_ewel <- function(d,h){
 
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
-# dat <- dat %>%
-# mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
+dat <- dat %>%
+mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
 # 
 # #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
@@ -201,8 +202,8 @@ TFTF <- function(d,h){
 # 
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
-# dat <- dat %>%
-#   mutate(TFTF = TFTF(diam_cm, Height_m))
+dat <- dat %>%
+  mutate(TFTF = TFTF(diam_cm, Height_m))
 #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>% 
 #   select(-TFTF)
@@ -292,7 +293,7 @@ Acosta_Coffee <- function(d){
 
 #This equations is from the Cairns paper and gives a general equation for carbon.
 Cairns_General <- function(d,h){
-  Abovebiomass <- exp((-2.173+0.868)*(ln((d^2)*h)+0.09392))
+  Abovebiomass <- exp((-2.173+0.868)*(log((d^2)*h)+0.09392))
   carbonTree <- Abovebiomass *0.5
   BelowBiomass <- carbonTree*1.2
   AGABGBiomass <- BelowBiomass + carbonTree
@@ -302,8 +303,9 @@ Cairns_General <- function(d,h){
 }
 
 # This is the code that creates a new column in the data with the equation listed above.
-# dat <- dat %>%
-#   mutate(Cairns_General = Cairns_General(diam_cm))
+dat <- dat %>%
+  mutate(Cairns_General = Cairns_General(diam_cm, Height_m))
+
 # dat <- dat %>%
 #   select(-Cairns_General)
 
@@ -318,24 +320,32 @@ Chave_General <- function(d,h){
   return(CO2equ_tons)
 }
 # This is the code that creates a new column in the data with the equation listed above.
-# dat <- dat %>%
-#   mutate(Chave_General = Chave_General(diam_cm))
+dat <- dat %>%
+  mutate(Chave_General = Chave_General(diam_cm, Height_m))
 # dat <- dat %>%
 #   select(-Chave_General)
 #-------------------------------------------------------------------------------------------
 #BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD. 
 # This is the code that binds all the equations together into one column based off of the tree species. 
 dat <- dat %>% 
-  select(Household, Species, diam_cm, Height_m, id, year) %>% 
+  # select(Household, Species, diam_cm, Height_m, id, year) %>% 
   mutate(Calculations = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
-                                  Species == 'A' ~ Chave_General(diam_cm, Height_m),
-                                  Species == 'C' ~ Chave_General(diam_cm, Height_m),
+                                  Species == 'A' ~ Dickert_Mahogany(diam_cm, Height_m),
+                                  Species == 'C' ~ Cole_Cedrela(diam_cm, Height_m),
                                   Species == 'K' ~ Acosta_Coffee(diam_cm),
                                   Species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
 
-
+dat <- dat %>% 
+  # select(Household, Species, diam_cm, Height_m, id, year) %>% 
+  mutate(Species_Specific = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
+                                  Species == 'A' ~ Dickert_Mahogany(diam_cm, Height_m),
+                                  Species == 'C' ~ Cole_Cedrela(diam_cm, Height_m),
+                                  Species == 'K' ~ Acosta_Coffee(diam_cm),
+                                  Species == 'KK' ~ Acosta_Coffee(diam_cm)
+  )
+  )
 # #GREEN
 # dat <- dat %>% 
 #   select(Household, Species, diam_cm, Height_m, id, year) %>% 
@@ -383,3 +393,5 @@ dat <- dat %>%
 #
 
 write_csv(dat, 'dat.csv')
+
+

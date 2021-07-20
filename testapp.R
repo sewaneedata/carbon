@@ -112,11 +112,11 @@ ui <- dashboardPage(
                                        choices = c("2019", "2021"),
                                        selected = c("2019", "2021"),
                                        multiple = TRUE),
-                           selectInput(inputId = "species_allometric",
+                           selectInput(inputId = "Species",
                                        label = "Choose a Species",
-                                       choices = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                                       selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                                       multiple = TRUE),
+                                       choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                                       #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                                       multiple = FALSE),
                            uiOutput('allometric_ui')),
                     column(12, 
                            plotOutput("allometric_plot"))
@@ -157,6 +157,7 @@ ui <- dashboardPage(
 # Server
 server <- function(input, output) {
     
+    
     output$household_ui <- renderUI({
         
         sub_dat <- dat %>% filter(year %in% input$year)
@@ -173,6 +174,54 @@ server <- function(input, output) {
         
         
     })
+    
+    output$allometric_ui <- renderUI({
+        
+        sub_dat <- dat %>% filter(year %in% input$year_regress)
+        spec <- input$Species
+        # if(length(spec) > 0){
+        #     # spec
+        # } else {
+        #     h3('No species for the year(s) selected')
+        # }
+        
+    })
+    
+   output$allometric_plot <- renderPlot({
+       year_name <- input$year_allometric
+       suballo <- dat %>%
+           filter(year %in% year_name) %>%
+           group_by(Species) %>%
+           summarize( Cole_Ewel=sum(cole_ewel), 
+                      TFTF=sum(TFTF), 
+                      Chave=sum(chave), 
+                      # Cairns_General=sum(Cairns_General), 
+                      Chave_General=sum(Chave_General), 
+                      Species_Specific=sum(Species_Specific))
+       # allo_plot <- dat%>% filter(year %in% input$year)
+       spec <- input$Species
+       # save(suballo,spec file = 'temp.rda')
+       if(spec == 'All'){
+           suballo <- reshape2::melt(suballo, id.vars = 'Species')
+           ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
+               geom_col() +
+               # geom_text(aes(label = round(value, 2), vjust =0))+
+               ggthemes::theme_economist() + 
+               labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+       } else {
+           suballo <- suballo %>% filter( Species == spec ) %>% 
+               select(-Species) %>%
+               gather( )
+           ggplot(suballo, aes(x = key, y=value)) +
+               geom_col(position = 'dodge', fill = "chocolate") +
+               geom_text(aes(label = round(value, 2), vjust =0))+
+               ggthemes::theme_economist()+
+               labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+       }
+      
+       
+   }) 
+   
     output$regression_ui <- renderUI({
         
         sub_dat <- dat %>% filter(year %in% input$year_regress)
