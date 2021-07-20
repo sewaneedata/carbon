@@ -202,10 +202,17 @@ server <- function(input, output) {
        spec <- input$Species
        # save(suballo,spec file = 'temp.rda')
        if(spec == 'All'){
+          
            suballo <- reshape2::melt(suballo, id.vars = 'Species')
+           
+           # create separate data frame with that shows total (use in geom_text)
+           tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
            ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
                geom_col() +
-               # geom_text(aes(label = round(value, 2), vjust =0))+
+               geom_text(data=tot_value,aes(variable, 
+                                            tot, 
+                                            fill = NULL,
+                                            label = round(tot, 2), vjust =0))+
                ggthemes::theme_economist() + 
                labs(x = "Equations", y = "Carbon Sequestered (in tons)")
        } else {
