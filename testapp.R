@@ -30,7 +30,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem(
-        text="Data",
+        text="Main Panel",
         tabName="testdata_19"),
       menuItem(
         text = 'Regressions',
@@ -112,11 +112,6 @@ ui <- dashboardPage(
                              choices = c("2019", "2021"),
                              selected = c("2019", "2021"),
                              multiple = TRUE),
-                 selectInput(inputId = "Species",
-                             label = "Choose a Species",
-                             choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                             #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                             multiple = FALSE),
                  uiOutput('allometric_ui')),
           column(12, 
                  plotOutput("allometric_plot"))
@@ -177,56 +172,71 @@ server <- function(input, output) {
   
   output$allometric_ui <- renderUI({
     
-    sub_dat <- dat %>% filter(year %in% input$year_regress)
-    spec <- input$Species
-    # if(length(spec) > 0){
-    #     # spec
-    # } else {
-    #     h3('No species for the year(s) selected')
-    # }
+    years_selected <- input$year_allometric
+    sub_dat <- dat %>% filter(year %in% years_selected)
+
+    if(nrow (sub_dat) > 0){
+      
+      selectInput(inputId = "Species",
+                  label = "Choose a Species",
+                  choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                  #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                  multiple = FALSE)
+    } else {
+      h3('No species for the year(s) selected')
+    }
     
   })
   
   output$allometric_plot <- renderPlot({
     year_name <- input$year_allometric
-    suballo <- dat %>%
-      filter(year %in% year_name) %>%
-      group_by(Species) %>%
-      summarize( Cole_Ewel=sum(cole_ewel), 
-                 TFTF=sum(TFTF), 
-                 Chave=sum(chave), 
-                 # Cairns_General=sum(Cairns_General), 
-                 Chave_General=sum(Chave_General), 
-                 Species_Specific=sum(Species_Specific))
-    # allo_plot <- dat%>% filter(year %in% input$year)
     spec <- input$Species
-    # save(suballo,spec file = 'temp.rda')
-    if(spec == 'All'){
-      
-      suballo <- reshape2::melt(suballo, id.vars = 'Species')
-      
-      # create separate data frame with that shows total (use in geom_text)
-      tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
-      ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
-        geom_col() +
-        geom_text(data=tot_value,aes(variable, 
-                                     tot, 
-                                     fill = NULL,
-                                     label = round(tot, 2), vjust =0))+
-        ggthemes::theme_economist() + 
-        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
-    } else {
-      suballo <- suballo %>% filter( Species == spec ) %>% 
-        select(-Species) %>%
-        gather( )
-      ggplot(suballo, aes(x = key, y=value)) +
-        geom_col(position = 'dodge', fill = "chocolate") +
-        geom_text(aes(label = round(value, 2), vjust =0))+
-        ggthemes::theme_economist()+
-        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+    
+    ok <- FALSE
+    
+    if(!is.null(year_name)){
+      if(!is.null(spec)){
+        ok <- TRUE
+      }
     }
     
-    
+    if(ok){
+      suballo <- dat %>%
+        filter(year %in% year_name) 
+      
+      suballo <- suballo %>%
+        group_by(Species) %>%
+        summarize( Cole_Ewel=sum(cole_ewel), 
+                   TFTF=sum(TFTF), 
+                   Chave_General=sum(Chave_General), 
+                   Species_Specific=sum(Species_Specific))
+      # allo_plot <- dat%>% filter(year %in% input$year)
+      # save(suballo,spec file = 'temp.rda')
+      if(spec == 'All'){
+        
+        suballo <- reshape2::melt(suballo, id.vars = 'Species')
+        
+        # create separate data frame with that shows total (use in geom_text)
+        tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
+        ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
+          geom_col() +
+          geom_text(data=tot_value,aes(variable, 
+                                       tot, 
+                                       fill = NULL,
+                                       label = round(tot, 2), vjust =0))+
+          ggthemes::theme_economist() + 
+          labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+      } else {
+        suballo <- suballo %>% filter( Species == spec ) %>% 
+          select(-Species) %>%
+          gather( )
+        ggplot(suballo, aes(x = key, y=value)) +
+          geom_col(position = 'dodge', fill = "chocolate") +
+          geom_text(aes(label = round(value, 2), vjust =0))+
+          ggthemes::theme_economist()+
+          labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+      }  
+    } 
   }) 
   
   output$regression_ui <- renderUI({
