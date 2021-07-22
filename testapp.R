@@ -4,6 +4,7 @@ library(dplyr)
 library(shinythemes)
 library(ggplot2)
 library(plotly)
+library(tidyr)
 
 dat <- read.csv('dat.csv')
 
@@ -168,20 +169,30 @@ server <- function(input, output) {
     }
     
     
-<<<<<<< HEAD
   })
-  
-  output$allometric_ui <- renderUI({
-=======
+
     output$allometric_ui <- renderUI({
         
-        sub_dat <- dat %>% filter(year %in% input$year_regress)
-        spec <- input$Species
-        # if(length(spec) > 0){
-        #     # spec
-        # } else {
-        #     h3('No species for the year(s) selected')
-        # }
+        sub_dat <- dat %>% filter(year %in% input$year_allometric)
+        if(nrow(sub_dat) > 0){
+          years_selected <- input$year_allometric
+          sub_dat <- dat %>% filter(year %in% years_selected)
+          
+          if(nrow (sub_dat) > 0){
+            
+            selectInput(inputId = "Species",
+                        label = "Choose a Species",
+                        choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                        #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                        multiple = FALSE)
+          } else {
+            h3('No species for the year(s) selected')
+          }
+          
+        } else {
+            h3('No species for the year(s) selected')
+        }
+        
         
     })
     
@@ -243,24 +254,8 @@ server <- function(input, output) {
         
         
     })
->>>>>>> f824fb10e68d931e5304efcdff254810398c2a27
-    
-    years_selected <- input$year_allometric
-    sub_dat <- dat %>% filter(year %in% years_selected)
 
-    if(nrow (sub_dat) > 0){
-      
-      selectInput(inputId = "Species",
-                  label = "Choose a Species",
-                  choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                  #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                  multiple = FALSE)
-    } else {
-      h3('No species for the year(s) selected')
-    }
-    
-  })
-  
+
   output$allometric_plot <- renderPlot({
     year_name <- input$year_allometric
     spec <- input$Species
