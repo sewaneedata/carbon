@@ -470,8 +470,11 @@ server <- function(input, output) {
     }else{subhe <- data.frame()
     
     }
-    
-    sum_tree <- length(subhe$Household)
+    twentyonesubhe <- dat%>% filter(year == 2021)
+    nineteensubhe <- dat%>% filter(year == 2019)
+    actualtwentyone <- length(twentyonesubhe$Household) - length(nineteensubhe$Household)
+   
+     sum_tree <- length(subhe$Household)
     valueBox(value = sum_tree,
              icon = icon ('tree'),
              subtitle = paste0('Total Trees on Farm ', he), color = 'green' )
@@ -489,7 +492,7 @@ server <- function(input, output) {
       ok <- TRUE
     }
     if(ok){
-      # create plot based on households. 
+      # create plot based on households.  
       subhe <- if (he == 'All') {
         datyear  %>%
           group_by( Species ) %>% 
