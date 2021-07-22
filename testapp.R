@@ -25,17 +25,17 @@ dat <- dat %>%
     Species == 'KK' ~ 'New Kafe'
   ))
 
-#This code makes the year 2021 the differnce between 2019 and 2021 so we can look at change over time. 
-
-sub2019 <- dat %>% filter(year==2019) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
-
-sub2021 <- dat %>% filter(year==2021) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
-
-joined_19_21 <- inner_join( sub2019, sub2021, by = c("Household", "Species"))
-
-joined_19_21 <- joined_19_21 %>% mutate( sum_tree = Number.y - Number.x, Calculations = Total.y - Total.x)
-
-joined_19_21 <- joined_19_21 %>% select(-Number.x, -Total.x, -Number.y, -Total.y)
+# #This code makes the year 2021 the differnce between 2019 and 2021 so we can look at change over time. 
+# 
+# sub2019 <- dat %>% filter(year==2019) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
+# 
+# sub2021 <- dat %>% filter(year==2021) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
+# 
+# joined_19_21 <- inner_join( sub2019, sub2021, by = c("Household", "Species"))
+# 
+# joined_19_21 <- joined_19_21 %>% mutate( sum_tree = Number.y - Number.x, Calculations = Total.y - Total.x)
+# 
+# joined_19_21 <- joined_19_21 %>% select(-Number.x, -Total.x, -Number.y, -Total.y)
 
 
 #################### Beginning of the Dashboard ###############################
@@ -170,17 +170,20 @@ server <- function(input, output) {
   
   output$household_ui <- renderUI({
     
-    sub_dat <- dat %>% filter(year %in% input$year)
-    hh_choices <- sort(unique(sub_dat$Household))
-    if(length(hh_choices) > 0){
+    yr<- input$year
+    if(yr =='Total'){
+      hh_choices <- sort(unique(dat$Household))
+    } else {
+      sub_dat <- dat %>% filter(year %in% yr)
+      hh_choices <- sort(unique(sub_dat$Household))
+    }
+  
       hh_choices <- c('All', hh_choices)
       selectInput(inputId = "Household",
                   label = "Choose a Household",
                   choices = hh_choices,
                   multiple = FALSE)
-    } else {
-      h3('No households for the year(s) selected')
-    }
+    
     
     
   })
@@ -404,27 +407,21 @@ server <- function(input, output) {
     he <- input$Household
     iyear <- input$year
     subhe <- dat
-    # if( iyear == "2021"){
-    #   subhe <- dat
-    # } else{
-    #   subhe <- dat
-    # }
-    
+    # save(iyear, he, subhe, file = 'temp.rda')
     if(!is.null(he)){
       if(he != "All"){
         subhe <- subhe %>%
           filter(Household == he)
       }
     }
-    twentyonesubhe <- dat%>% filter(year == 2021)
-    nineteensubhe <- dat%>% filter(year == 2019)
-    
+    twentyonesubhe <- subhe%>% filter(year == 2021)
+    nineteensubhe <- subhe%>% filter(year == 2019)
     if( iyear == "2019"){
       subhe <- subhe %>% filter( year == "2019" )
-      sum_carb <- sum(nineteensubhe$Calculations)
+      sum_carb <- sum(subhe$Calculations)
     } else if( iyear == "Total"){
       subhe <- subhe %>% filter( year == "2021")
-      sum_carb <- sum(twentyonesubhe$Calculations)
+      sum_carb <- sum(subhe$Calculations)
     } else if(iyear == "2021"){
       sum_carb <- sum(twentyonesubhe$Calculations) - sum(nineteensubhe$Calculations)
     }
@@ -448,12 +445,8 @@ server <- function(input, output) {
   output$tot_money <- renderValueBox({
     he <- input$Household
     iyear <- input$year
-    
-    if (iyear == '2021'){
-      subhe <- joined_19_21
-    } else {
-      subhe <- dat
-    }
+    subhe <- dat
+   
     
     if (!is.null(he)){
       if(he != "All"){
@@ -469,8 +462,8 @@ server <- function(input, output) {
       subhe <- subhe %>% filter (year == '2021')
       sum_calc <- sum(subhe$Calculations) * 50
     } else if (iyear == '2021') {
-      twentyonesubhe <- dat%>% filter(year == 2021)
-      nineteensubhe <- dat%>% filter(year == 2019)
+      twentyonesubhe <- subhe%>% filter(year == 2021)
+      nineteensubhe <- subhe%>% filter(year == 2019)
       sum_calc <- (sum(twentyonesubhe$Calculations) - sum(nineteensubhe$Calculations))*50
     }
     
@@ -489,11 +482,7 @@ server <- function(input, output) {
   output$tot_tree <- renderValueBox({
     he <- input$Household
     iyear <- input$year
-    if (iyear == '2021'){
-      subhe <-joined_19_21
-    } else {
-    subhe <- dat
-    }
+    subhe<- dat
     
     if(!is.null(he)){
       if(he != "All"){
@@ -501,11 +490,7 @@ server <- function(input, output) {
           filter(Household == he)
       }    
     }
-    # if(!is.null(iyear)){
-    #   subhe <- subhe %>% filter(year %in% iyear)    
-    # }else{subhe <- data.frame()
-    # 
-    # }
+
     if( iyear == "2019"){
       subhe <- subhe %>% filter( year == "2019" )
       sum_tree <- length(subhe$Household)
@@ -513,8 +498,8 @@ server <- function(input, output) {
       subhe <- subhe %>% filter( year == "2021")
       sum_tree <- length(subhe$Household)
     } else if (iyear == '2021') {
-      twentyonesubhe <- dat%>% filter(year == 2021)
-      nineteensubhe <- dat%>% filter(year == 2019)
+      twentyonesubhe <- subhe%>% filter(year == 2021)
+      nineteensubhe <- subhe%>% filter(year == 2019)
       sum_tree <- length(twentyonesubhe$Household) - length(nineteensubhe$Household)
     }
     
