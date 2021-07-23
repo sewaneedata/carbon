@@ -53,6 +53,7 @@ joined_19_21 <- joined_19_21 %>%
 
 #################### Beginning of the Dashboard ###############################
 
+#These are the names of the tabs that we have created. 
 ui <- dashboardPage(
   dashboardHeader (title = "Zanmi Kafe Dashboard"),
   dashboardSidebar(
@@ -75,6 +76,7 @@ ui <- dashboardPage(
       tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
     ),
     tabItems(
+  #These are all the inputs for the main pannel. 
       tabItem(
         tabName="testdata_19",
         fluidRow(
@@ -107,6 +109,7 @@ ui <- dashboardPage(
                  plotOutput("Household"))
         )
       ),
+  #These are all the inputs for the regressions tab. 
       tabItem(
         tabName="Regression",
         h4('View Regression Per Household in 2019'),
@@ -118,10 +121,6 @@ ui <- dashboardPage(
                              selected = ("2019"),
                              multiple = FALSE),
                  uiOutput('regression_ui')),
-          # selectInput(inputId = "household_regress",
-          #             label = "Choose a Household",
-          #             choices = c ('All',unique(dat$Household)),
-          #             selected = 'All'),
           
           column(12, 
                  plotOutput("regression_plot"))
@@ -130,6 +129,7 @@ ui <- dashboardPage(
         
         
       ),
+  # These are all the inputs for the allometric tab. 
       tabItem(
         tabName="allometric",
         h4('Compare Carbon Sequestration Using Different Equations'),
@@ -148,6 +148,7 @@ ui <- dashboardPage(
         
         
       ),
+  #These are the inputs for the about tab. 
       tabItem(
         tabName = 'about',
         fluidPage(
@@ -181,25 +182,8 @@ ui <- dashboardPage(
 server <- function(input, output) {
   
   
-  output$household_ui <- renderUI({
-    
-    yr<- input$year
-    if(yr =='Total'){
-      hh_choices <- sort(unique(dat$Household))
-    } else {
-      sub_dat <- dat %>% filter(year %in% yr)
-      hh_choices <- sort(unique(sub_dat$Household))
-    }
-    
-    hh_choices <- c('All', hh_choices)
-    selectInput(inputId = "Household",
-                label = "Choose a Household",
-                choices = hh_choices,
-                multiple = FALSE)
-    
-    
-    
-  })
+##################################### Allometric###############################  
+ #This puts in the select ayear and species options in the alloemetic tab.------
   
   output$allometric_ui <- renderUI({
     
@@ -225,66 +209,8 @@ server <- function(input, output) {
     
     
   })
-  
-  output$allometric_plot <- renderPlot({
-    year_name <- input$year_allometric
-    suballo <- dat %>%
-      filter(year %in% year_name) %>%
-      group_by(Species) %>%
-      summarize( Cole_Ewel=sum(cole_ewel), 
-                 TFTF=sum(TFTF), 
-                 Chave=sum(chave), 
-                 # Cairns_General=sum(Cairns_General), 
-                 Chave_General=sum(Chave_General), 
-                 Species_Specific=sum(Species_Specific))
-    # allo_plot <- dat%>% filter(year %in% input$year)
-    spec <- input$Species
-    # save(suballo,spec file = 'temp.rda')
-    if(spec == 'All'){
-      
-      suballo <- reshape2::melt(suballo, id.vars = 'Species')
-      
-      # create separate data frame with that shows total (use in geom_text)
-      tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
-      ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
-        geom_col() +
-        geom_text(data=tot_value,aes(variable, 
-                                     tot, 
-                                     fill = NULL,
-                                     label = round(tot, 2), vjust =0))+
-        ggthemes::theme_economist() + 
-        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
-    } else {
-      suballo <- suballo %>% filter( Species == spec ) %>% 
-        select(-Species) %>%
-        gather( )
-      ggplot(suballo, aes(x = key, y=value)) +
-        geom_col(position = 'dodge', fill = "chocolate") +
-        geom_text(aes(label = round(value, 2), vjust =0))+
-        ggthemes::theme_economist()+
-        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
-    }
-    
-    
-  }) 
-  
-  output$regression_ui <- renderUI({
-    
-    sub_dat <- dat %>% filter(year %in% input$year_regress)
-    hh_choices <- sort(unique(sub_dat$Household))
-    if(length(hh_choices) > 0){
-      hh_choices <- c('All', hh_choices)
-      selectInput(inputId = "household_regress",
-                  label = "Choose a Household",
-                  choices = hh_choices,
-                  multiple = FALSE)
-    } else {
-      h3('No households for the year(s) selected')
-    }
-    
-    
-  })
-  
+ 
+#This gives the plot for the allometric equations.------------------------------ 
   
   output$allometric_plot <- renderPlot({
     year_name <- input$year_allometric
@@ -308,8 +234,6 @@ server <- function(input, output) {
                    TFTF=sum(TFTF), 
                    Chave_General=sum(Chave_General), 
                    Species_Specific=sum(Species_Specific))
-      # allo_plot <- dat%>% filter(year %in% input$year)
-      # save(suballo,spec file = 'temp.rda')
       if(spec == 'All'){
         
         suballo <- reshape2::melt(suballo, id.vars = 'Species')
@@ -335,8 +259,11 @@ server <- function(input, output) {
           labs(x = "Equations", y = "Carbon Sequestered (in tons)")
       }  
     } 
-  }) 
+  })
   
+  
+ ################################ Regressions ################################# 
+  #This is the creates the slect inputs for the regression tab.----------------- 
   output$regression_ui <- renderUI({
     
     sub_dat <- dat %>% filter(year %in% input$year_regress)
@@ -353,6 +280,7 @@ server <- function(input, output) {
     
     
   })
+ #This creates the plot for the regressions tab.--------------------------------
   
   output$regression_plot <- renderPlot({
     df_lm <- lm(dat$Height_m~dat$diam_cm)
@@ -407,12 +335,32 @@ server <- function(input, output) {
           geom_smooth(method = lm, se = FALSE, color = 'Red') +
           facet_wrap(~Species)+
           labs(title = paste0('Height by Diameter of Trees in Household ',he), x = ' log Tree Diameter', y = 'log Tree Height')
-        # annotate("text", x=.5, y=4,
-        #          label= paste("R^2 =",round(r2df$r2,digits=3)),
-        #          parse=TRUE, size = 3)
       }
       
     }
+    
+  })
+  
+ ################################## Main Panel##################################
+  
+  #This creates the 
+  output$household_ui <- renderUI({
+    
+    yr<- input$year
+    if(yr =='Total'){
+      hh_choices <- sort(unique(dat$Household))
+    } else {
+      sub_dat <- dat %>% filter(year %in% yr)
+      hh_choices <- sort(unique(sub_dat$Household))
+    }
+    
+    hh_choices <- c('All', hh_choices)
+    selectInput(inputId = "Household",
+                label = "Choose a Household",
+                choices = hh_choices,
+                multiple = FALSE)
+    
+    
     
   })
   
