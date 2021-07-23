@@ -1,11 +1,14 @@
 #Zanmi Kafe R-Script:
-#Hello person working on this. The three lines bellow are the packages that We used for this sheet. Run these three lines of code, if they don't work then type in install.packages and put in the name of the pacages in that function. After that, run these again. 
+#Hello person working on this. The lines bellow are the packages that We used for this sheet. Run these three lines of code, if they don't work then type in install.packages and put in the name of the packages in that function. After that, run these again. 
 library (dplyr)
 library(googlesheets4)
 library (tidyr)
+library(readr)
 ############################################################################################
 #READING IN THE DATA:
 # This is a for loop that reads in the data from a Google sheet and puts it into R. You have to do this for loop for each spreadsheet used. The 2019 data is annotates for where values need to be changed for inputting data in later years.   
+
+
 #-------------------------------------------------------------------------------------------
 #For loop and data editing for 2019 data:
 data_list <- list()
@@ -21,13 +24,17 @@ for(i in 1:length(sheet_numbers)){
 }
 #This binds the lists into one data frame (we are calling it 'dat')
 dat <- do.call('rbind', data_list)
-nineteendat <- dat
-#This removes the N/A from 'dat'. 
 
+# This makes this data frame into one that is designated for the 2019 data. 
+
+nineteendat <- dat
+
+#This removes the N/A from 'dat'. 
 nineteendat <- nineteendat %>% drop_na()
 nrow(nineteendat)
 nineteendat <- nineteendat[complete.cases(nineteendat),]
 
+#This puts a year column in the 2019 data and assigns the year for each row as 2019.  
 nineteendat$year <- 2019
 
 #This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame. 
@@ -50,13 +57,9 @@ nineteendat <- nineteendat %>%
   select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
 
 
-
-
-
-
-
-
-# Repeat these steps to read in and bind 2021 dataset
+#-------------------------------------------------------------------------------------------
+#For loop and data editing for 2021 data:
+# Repeat these steps to read in and bind 2021 data set
 #Entered in Google sheet link to the 2021 data
 data_listtwentyone <- list ()
 sheet_numbers <- 1:50
@@ -68,16 +71,7 @@ for(i in 1:length(sheet_numbers)){
   data_listtwentyone [[i]] <- temptwentyone
 }
 
-
-# # see if household is duplicated in any data frame
-# for(i in 1:length(data_listtwentyone)){
-#     this_data <- data_listtwentyone[[i]]
-#     the_names <- names(this_data)
-#     h_names <- grepl('Household', the_names)
-#     if(length(which(h_names)) > 1){
-#         print(i)
-#     }
-# }
+#This is something that Joe wrote that changes the names of the columns because the column names for 2021 did not match the column names for 2019. It also takes out the measurements in the data. There was sime data that had cm or mm after the measurement. 
 brew_list <- list()
 for(i in 1:length(data_listtwentyone)){
   this_data <- data_listtwentyone[[i]]
@@ -100,8 +94,11 @@ for(i in 1:length(data_listtwentyone)){
   }
   brew_list[[i]] <- this_data
 }
+
+#This binds the 2021 data into a data frame. 
 twentyonedat <- bind_rows(brew_list)
 twentyonedat <- twentyonedat %>% select (-Diam_mm)
+#This makes sure all the column names are the same. 
 twentyonedat <- twentyonedat %>%
   rename (id = Tree, 
           diam_cm = Diam_corr_cm)
@@ -110,7 +107,7 @@ twentyonedat <- twentyonedat %>%
           Height_m = Height_cm / 100) 
 twentyonedat <- twentyonedat %>%
   select (-Height_cm)
-library(readr)
+
 # this is where we ran to! stop here and examine before binding datasets
 
 
@@ -125,7 +122,7 @@ dat <- dat %>% mutate(Species = toupper(Species))
 dat <- dat %>% drop_na()
 dat <- dat[complete.cases(dat),]
 
-#This removes stuff from our enviernment thar we don't need. 
+#This removes stuff from our environment that we don't need. 
 rm(brew_list, data_listtwentyone, temptwentyone, this_data, treesi, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
 
 
@@ -146,14 +143,13 @@ dat <- dat %>%
     Species == 'NEW KAFE' ~ 'KK',
     Species == 'KK' ~ 'KK'
   ))
-#-------------------------------------------------------------------------------------------
-#For loop and data editing for 2021 data:
+
 ############################################################################################
 #EQUATIONS
 #The first three equations are ones that Dr. McGrath found. For each equation, the last name of the author in the paper the equations was found is listed first, and the name of the tree the equation goes with is listed second. 
 #-------------------------------------------------------------------------------------------
 #McGrath Eeuations: 
-# This is the green equation on Dr. McGrath's spreadsheet.  
+# This is the green equation on Dr. McGrath's 2019 spreadsheet.  
 cole_ewel <- function(d,h){
   biomass <- 1.631+.017*(d^2)*h
   carbon <- biomass * 0.5
@@ -208,7 +204,8 @@ Sharma_Mango <- function(d){
 # 
 # dat <- dat %>%
 #   select(-Mango)
-#This is the equation for the Mahogany tree. One thing to note about this equation is that it only calculates for above ground biomass and does not include below ground biomass. Ask dr. McGrath if we need to have both.
+
+#This is the equation for the Mahogany tree.
 
 Dickert_Mahogany <- function(d,h){
   Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
@@ -225,7 +222,8 @@ Dickert_Mahogany <- function(d,h){
 # 
 # dat <- dat %>%
 #   select(-Mahogany)
-# I think this is the equation for just the above ground biomass. This is the cedrela tree equation from the Cole and Ewel paper. 
+
+# This is the cedrela tree equation from the Cole and Ewel paper. 
 Cole_Cedrela <- function(d,h){
   Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
   BlowGround <- Abovebiomass *1.2
@@ -240,22 +238,7 @@ Cole_Cedrela <- function(d,h){
 #   mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
 # dat <- dat %>%
 #   select(-Cedrela)
-# This is the equation from the Padjung paper. This includes the trees but not the coffee beans or harvested coffee. This calculates the above ground and below ground biomass of the coffee tree. 
 
-Padjung_Coffee <- function(d){
-  Abovebiomass <- 0.11*0.62*(d)*2.62
-  carbonTree <- Abovebiomass * 0.5
-  BelowBiomass <- carbonTree*1.2
-  AGABGBiomass <- BelowBiomass + carbonTree
-  CO2equ_kg <- AGABGBiomass *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
-# This is the code that creates a new column in the data with the equation from the Cole and Padjung paper.
-# dat <- dat %>%
-#   mutate(Coffee = Padjung_Coffee(diam_cm))
-# dat <- dat %>%
-#   select(-Coffee)
 
 #This equations came from the Mexico paper. 
 Acosta_Coffee <- function(d){
@@ -292,7 +275,7 @@ dat <- dat %>%
 #   select(-Chave_General)
 #-------------------------------------------------------------------------------------------
 #BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD. 
-# This is the code that binds all the equations together into one column based off of the tree species. 
+# This is the code that binds all the equations together into one column based off what Dr. McGrath found appropriate. 
 dat <- dat %>% 
   # select(Household, Species, diam_cm, Height_m, id, year) %>% 
   mutate(Calculations = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
@@ -303,6 +286,7 @@ dat <- dat %>%
   )
   )
 
+#This is what we used for the Allometric equations tab to look at each equations that are speciefic for each tree. 
 dat <- dat %>% 
   # select(Household, Species, diam_cm, Height_m, id, year) %>% 
   mutate(Species_Specific = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
@@ -312,42 +296,8 @@ dat <- dat %>%
                                   Species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
-# #GREEN
-# dat <- dat %>% 
-#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
-#   mutate(Calculations = case_when(Species == 'M' ~ cole_ewel(diam_cm, Height_m),
-#                                   Species == 'A' ~ cole_ewel(diam_cm, Height_m),
-#                                   Species == 'C' ~ cole_ewel(diam_cm, Height_m),
-#                                   Species == 'K' ~ cole_ewel(diam_cm, Height_m),
-#                                   Species == 'KK' ~ cole_ewel(diam_cm, Height_m)
-#   )
-#   )
-# 
-# 
-# #BLUE
-# dat <- dat %>% 
-#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
-#   mutate(Calculations = case_when(Species == 'M' ~ chave(diam_cm, Height_m),
-#                                   Species == 'A' ~ chave(diam_cm, Height_m),
-#                                   Species == 'C' ~ chave(diam_cm, Height_m),
-#                                   Species == 'K' ~ chave(diam_cm, Height_m),
-#                                   Species == 'KK' ~ chave(diam_cm, Height_m)
-#   )
-#   )
-# 
-# #Orange
-# dat <- dat %>% 
-#   select(Household, Species, diam_cm, Height_m, id, year) %>% 
-#   mutate(Calculations = case_when(Species == 'M' ~ TFTF(diam_cm, Height_m),
-#                                   Species == 'A' ~ TFTF(diam_cm, Height_m),
-#                                   Species == 'C' ~ TFTF(diam_cm, Height_m),
-#                                   Species == 'K' ~ TFTF(diam_cm, Height_m),
-#                                   Species == 'KK' ~ TFTF(diam_cm, Height_m)
-#   )
-#   )
 
-
-
+#This line of code is for fraud detection. Information sent to Dr. McGrath in an email. 
 # fix <- dat%>%
 #   mutate(LogHeight = log(Height_m))%>%
 #   filter(LogHeight <= -2.5)
