@@ -13,30 +13,43 @@ dat <- read.csv('dat.csv')
 #This changes the names of the trees from just a letter to their full names. It is important to run this before working with the code below. 
 dat <- dat %>%
   mutate(Species = case_when(
-    Species == 'Akajou'~ 'Akajou',
+    # Species == 'Akajou'~ 'Akajou',
     Species == 'A' ~ 'Akajou',
-    Species == 'mango' ~ 'Mango',
+    # Species == 'mango' ~ 'Mango',
     Species == 'M' ~ 'Mango',
-    Species == 'Kafe' ~ 'Kafe',
+    # Species == 'Kafe' ~ 'Kafe',
     Species == 'K' ~ 'Kafe',
-    Species == 'Ced' ~ 'Ced',
+    # Species == 'Ced' ~ 'Ced',
     Species == 'C' ~ 'Ced',
-    Species == 'New Kafe' ~ 'New Kafe',
+    # Species == 'New Kafe' ~ 'New Kafe',
     Species == 'KK' ~ 'New Kafe'
   ))
 
 # #This code makes the year 2021 the differnce between 2019 and 2021 so we can look at change over time. 
-# 
-# sub2019 <- dat %>% filter(year==2019) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
-# 
-# sub2021 <- dat %>% filter(year==2021) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
-# 
-# joined_19_21 <- inner_join( sub2019, sub2021, by = c("Household", "Species"))
-# 
-# joined_19_21 <- joined_19_21 %>% mutate( sum_tree = Number.y - Number.x, Calculations = Total.y - Total.x)
-# 
-# joined_19_21 <- joined_19_21 %>% select(-Number.x, -Total.x, -Number.y, -Total.y)
 
+sub2019 <- dat %>% filter(year==2019) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
+
+sub2021 <- dat %>% filter(year==2021) %>% group_by(Household, Species) %>% summarize(Number=n(), Total=sum(Calculations))
+
+joined_19_21 <- inner_join( sub2019, sub2021, by = c("Household", "Species"))
+
+joined_19_21 <- joined_19_21 %>% mutate( sum_tree = Number.y - Number.x, Calculations = Total.y - Total.x)
+
+joined_19_21 <- joined_19_21 %>% select(-Number.x, -Total.x, -Number.y, -Total.y)
+
+joined_19_21 <- joined_19_21 %>%
+  mutate(Species = case_when(
+    Species == 'Akajou'~ 'Akajou',
+    # Species == 'A' ~ 'Akajou',
+    Species == 'Mango' ~ 'Mango',
+    # Species == 'M' ~ 'Mango',
+    Species == 'Kafe' ~ 'Kafe',
+    # Species == 'K' ~ 'Kafe',
+    Species == 'Ced' ~ 'Ced',
+    # Species == 'C' ~ 'Ced',
+    Species == 'New Kafe' ~ 'New Kafe'#,
+    # Species == 'KK' ~ 'New Kafe'
+  ))
 
 #################### Beginning of the Dashboard ###############################
 
@@ -113,7 +126,7 @@ ui <- dashboardPage(
           column(12, 
                  plotOutput("regression_plot"))
           
-        ),
+        )
         
         
       ),
@@ -131,7 +144,7 @@ ui <- dashboardPage(
           column(12, 
                  plotOutput("allometric_plot"))
           
-        ),
+        )
         
         
       ),
@@ -177,102 +190,102 @@ server <- function(input, output) {
       sub_dat <- dat %>% filter(year %in% yr)
       hh_choices <- sort(unique(sub_dat$Household))
     }
-  
-      hh_choices <- c('All', hh_choices)
-      selectInput(inputId = "Household",
-                  label = "Choose a Household",
-                  choices = hh_choices,
-                  multiple = FALSE)
+    
+    hh_choices <- c('All', hh_choices)
+    selectInput(inputId = "Household",
+                label = "Choose a Household",
+                choices = hh_choices,
+                multiple = FALSE)
     
     
     
   })
-
-    output$allometric_ui <- renderUI({
-        
-        sub_dat <- dat %>% filter(year %in% input$year_allometric)
-        if(nrow(sub_dat) > 0){
-          years_selected <- input$year_allometric
-          sub_dat <- dat %>% filter(year %in% years_selected)
-          
-          if(nrow (sub_dat) > 0){
-            
-            selectInput(inputId = "Species",
-                        label = "Choose a Species",
-                        choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                        #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
-                        multiple = FALSE)
-          } else {
-            h3('No species for the year(s) selected')
-          }
-          
-        } else {
-            h3('No species for the year(s) selected')
-        }
-        
-        
-    })
+  
+  output$allometric_ui <- renderUI({
     
-   output$allometric_plot <- renderPlot({
-       year_name <- input$year_allometric
-       suballo <- dat %>%
-           filter(year %in% year_name) %>%
-           group_by(Species) %>%
-           summarize( Cole_Ewel=sum(cole_ewel), 
-                      TFTF=sum(TFTF), 
-                      Chave=sum(chave), 
-                      # Cairns_General=sum(Cairns_General), 
-                      Chave_General=sum(Chave_General), 
-                      Species_Specific=sum(Species_Specific))
-       # allo_plot <- dat%>% filter(year %in% input$year)
-       spec <- input$Species
-       # save(suballo,spec file = 'temp.rda')
-       if(spec == 'All'){
-          
-           suballo <- reshape2::melt(suballo, id.vars = 'Species')
-           
-           # create separate data frame with that shows total (use in geom_text)
-           tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
-           ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
-               geom_col() +
-               geom_text(data=tot_value,aes(variable, 
-                                            tot, 
-                                            fill = NULL,
-                                            label = round(tot, 2), vjust =0))+
-               ggthemes::theme_economist() + 
-               labs(x = "Equations", y = "Carbon Sequestered (in tons)")
-       } else {
-           suballo <- suballo %>% filter( Species == spec ) %>% 
-               select(-Species) %>%
-               gather( )
-           ggplot(suballo, aes(x = key, y=value)) +
-               geom_col(position = 'dodge', fill = "chocolate") +
-               geom_text(aes(label = round(value, 2), vjust =0))+
-               ggthemes::theme_economist()+
-               labs(x = "Equations", y = "Carbon Sequestered (in tons)")
-       }
+    sub_dat <- dat %>% filter(year %in% input$year_allometric)
+    if(nrow(sub_dat) > 0){
+      years_selected <- input$year_allometric
+      sub_dat <- dat %>% filter(year %in% years_selected)
       
-       
-   }) 
-   
-    output$regression_ui <- renderUI({
+      if(nrow (sub_dat) > 0){
         
-        sub_dat <- dat %>% filter(year %in% input$year_regress)
-        hh_choices <- sort(unique(sub_dat$Household))
-        if(length(hh_choices) > 0){
-            hh_choices <- c('All', hh_choices)
-            selectInput(inputId = "household_regress",
-                        label = "Choose a Household",
-                        choices = hh_choices,
-                        multiple = FALSE)
-        } else {
-            h3('No households for the year(s) selected')
-        }
-        
-        
-    })
-
-
+        selectInput(inputId = "Species",
+                    label = "Choose a Species",
+                    choices = c("All","Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                    #selected = c("Akajou", "Mango", "Ced", "Kafe", "New Kafe"),
+                    multiple = FALSE)
+      } else {
+        h3('No species for the year(s) selected')
+      }
+      
+    } else {
+      h3('No species for the year(s) selected')
+    }
+    
+    
+  })
+  
+  output$allometric_plot <- renderPlot({
+    year_name <- input$year_allometric
+    suballo <- dat %>%
+      filter(year %in% year_name) %>%
+      group_by(Species) %>%
+      summarize( Cole_Ewel=sum(cole_ewel), 
+                 TFTF=sum(TFTF), 
+                 Chave=sum(chave), 
+                 # Cairns_General=sum(Cairns_General), 
+                 Chave_General=sum(Chave_General), 
+                 Species_Specific=sum(Species_Specific))
+    # allo_plot <- dat%>% filter(year %in% input$year)
+    spec <- input$Species
+    # save(suballo,spec file = 'temp.rda')
+    if(spec == 'All'){
+      
+      suballo <- reshape2::melt(suballo, id.vars = 'Species')
+      
+      # create separate data frame with that shows total (use in geom_text)
+      tot_value <- suballo %>% group_by(variable) %>% summarise(tot = sum(value))
+      ggplot(suballo, aes(x = variable, y=value, fill = Species)) +
+        geom_col() +
+        geom_text(data=tot_value,aes(variable, 
+                                     tot, 
+                                     fill = NULL,
+                                     label = round(tot, 2), vjust =0))+
+        ggthemes::theme_economist() + 
+        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+    } else {
+      suballo <- suballo %>% filter( Species == spec ) %>% 
+        select(-Species) %>%
+        gather( )
+      ggplot(suballo, aes(x = key, y=value)) +
+        geom_col(position = 'dodge', fill = "chocolate") +
+        geom_text(aes(label = round(value, 2), vjust =0))+
+        ggthemes::theme_economist()+
+        labs(x = "Equations", y = "Carbon Sequestered (in tons)")
+    }
+    
+    
+  }) 
+  
+  output$regression_ui <- renderUI({
+    
+    sub_dat <- dat %>% filter(year %in% input$year_regress)
+    hh_choices <- sort(unique(sub_dat$Household))
+    if(length(hh_choices) > 0){
+      hh_choices <- c('All', hh_choices)
+      selectInput(inputId = "household_regress",
+                  label = "Choose a Household",
+                  choices = hh_choices,
+                  multiple = FALSE)
+    } else {
+      h3('No households for the year(s) selected')
+    }
+    
+    
+  })
+  
+  
   output$allometric_plot <- renderPlot({
     year_name <- input$year_allometric
     spec <- input$Species
@@ -426,7 +439,7 @@ server <- function(input, output) {
       sum_carb <- sum(twentyonesubhe$Calculations) - sum(nineteensubhe$Calculations)
     }
     
-
+    
     if(is.null(sum_carb)){
       the_title <- ' '
     } else {
@@ -446,7 +459,7 @@ server <- function(input, output) {
     he <- input$Household
     iyear <- input$year
     subhe <- dat
-   
+    
     
     if (!is.null(he)){
       if(he != "All"){
@@ -490,7 +503,7 @@ server <- function(input, output) {
           filter(Household == he)
       }    
     }
-
+    
     if( iyear == "2019"){
       subhe <- subhe %>% filter( year == "2019" )
       sum_tree <- length(subhe$Household)
@@ -509,68 +522,86 @@ server <- function(input, output) {
   })
   
   output$Household <- renderPlot({
-    
-    datyear <- dat %>% filter(year %in% input$year)
-    
+    datyear <- dat
+    iyear <- input$year
+    iyear <- as.numeric(iyear)
     he <- input$Household
     graph <- input$Graph
+
+    
+    if (iyear ==2019){
+      datyear <- dat %>% filter(year == 2019)
+    } else if(iyear == "Total"){
+      datyear <- dat %>% filter (year == 2021)
+    } else if (iyear == 2021){
+      datyear <- joined_19_21
+    }
+    
+    # save(datyear, iyear, joined_19_21, dat, he, graph, file = '/tmp/xx.RData')
+    
     
     ok <- FALSE
     if(!is.null(he)){
       ok <- TRUE
     }
+    
     if(ok){
       # create plot based on households.  
-      subhe <- if (he == 'All') {
-        datyear  %>%
+      if (he == 'All') {
+        subhe <-  datyear  %>%
           group_by( Species ) %>% 
           summarize( Carbon = sum(Calculations))
       } else {
-        datyear  %>%
+        subhe <-datyear  %>%
           filter(Household == he) %>% 
           group_by( Species ) %>% 
           summarize( Carbon = sum(Calculations))
       }
       
-      payments <- if (he == 'All') {
-        datyear  %>%
+      if (he == 'All') {
+        payments <-  datyear  %>%
           group_by( Species ) %>%
           summarise(Pay = (sum(Calculations)*50))
       } else {
-        datyear %>%
+        payments <-datyear %>%
           filter(Household == he)%>%
           group_by( Species ) %>%
           summarise(Pay = (sum(Calculations)*50))
       }
       
-      
-      Num_Tree <- if (he == 'All') {
-        datyear  %>%
-          group_by( Species ) %>%
-          summarise(Tre = length(Household))
+      if (iyear == 2021){
+        if (he == 'All') {
+          Num_Tree <- joined_19_21  %>% group_by(Species ) %>%  summarize (Tre = sum( sum_tree ))
+        } else{
+          Num_Tree <- joined_19_21  %>% filter( Household == he ) %>% group_by(Species ) %>% summarize (Tre = sum_tree )
+        }
       } else {
-        datyear %>%
-          filter(Household == he)%>%
-          group_by( Species ) %>%
-          summarise(Tre = length(Household))
+        
+        if (he == 'All') {
+          Num_Tree <-  datyear  %>%
+            group_by( Species ) %>%
+            summarise(Tre = length(Household))
+        } else {
+          Num_Tree <-        datyear %>%
+            filter(Household == he)%>%
+            group_by( Species ) %>%
+            summarise(Tre = length(Household))
+        }
       }
       
-      
-      if(input$Graph=='Carbon sequestered'){
+      if(graph=='Carbon sequestered'){
         ggplot(subhe, aes(x = Species, y=Carbon, fill=Species)) +
-          geom_col(position = 'dodge') +
+          geom_bar(position = 'dodge', stat = 'identity') +
           geom_text( aes(label=round(Carbon,3)), vjust=0) +
           labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
-      }
-      else if (input$Graph == 'Carbon payments'){
+      } else if (graph == 'Carbon payments'){
         ggplot(data = payments, aes(x = Species, y = Pay, fill = Species))+
-          geom_col(position = 'dodge') +
+          geom_bar(position = 'dodge', stat = 'identity') +
           geom_text( aes(label=round(Pay,2)), vjust=0) +
           labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
-      }
-      else if (input$Graph == 'Number of trees'){
+      } else if (graph == 'Number of trees'){
         ggplot(data = Num_Tree, aes(x = Species, y = Tre, fill = Species))+
-          geom_col(position = 'dodge') +
+          geom_bar(position = 'dodge', stat = 'identity') +
           geom_text( aes(label=Tre, vjust=0)) +
           labs(title = paste0('Number of Trees for Household ',he), x = 'Species', y = 'Number of Trees') + ggthemes::theme_economist() + theme (legend.position = 'none')
       }
