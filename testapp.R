@@ -343,7 +343,7 @@ server <- function(input, output) {
   
  ################################## Main Panel##################################
   
-  #This creates the 
+#This creates the select inputs for the main pannel-----------------------------
   output$household_ui <- renderUI({
     
     yr<- input$year
@@ -364,6 +364,7 @@ server <- function(input, output) {
     
   })
   
+#This creates a value box for the total carbon absorbed ------------------------
   output$tot_carb <- renderValueBox({
     he <- input$Household
     iyear <- input$year
@@ -402,7 +403,8 @@ server <- function(input, output) {
       subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua' 
     )
   })
-  
+
+#This creates a value box for the total money made------------------------------  
   output$tot_money <- renderValueBox({
     he <- input$Household
     iyear <- input$year
@@ -440,6 +442,8 @@ server <- function(input, output) {
              subtitle = paste0('Total Money Paid to Household (USD)'), color = 'blue')
     
   })
+  
+#This creates a value box for the total amount of trees planted------------------
   output$tot_tree <- renderValueBox({
     he <- input$Household
     iyear <- input$year
@@ -468,24 +472,26 @@ server <- function(input, output) {
              icon = icon ('tree'),
              subtitle = paste0('Total Trees on Farm ', he), color = 'green' )
   })
-  
+
+# This creates the plots for the main panel-------------------------------------    
   output$Household <- renderPlot({
     datyear <- dat
     iyear <- input$year
-    iyear <- as.numeric(iyear)
     he <- input$Household
     graph <- input$Graph
-
+    # save(datyear, iyear, he, graph, file = '/tmp/katebaker.RData' )
     
-    if (iyear ==2019){
+    if (iyear =='2019'){
       datyear <- dat %>% filter(year == 2019)
+      iyear <- as.numeric(iyear)
     } else if(iyear == "Total"){
       datyear <- dat %>% filter (year == 2021)
-    } else if (iyear == 2021){
+    } else if (iyear == '2021'){
       datyear <- joined_19_21
+      iyear <- as.numeric(iyear)
     }
     
-    # save(datyear, iyear, joined_19_21, dat, he, graph, file = '/tmp/xx.RData')
+ 
     
     
     ok <- FALSE
