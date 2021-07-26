@@ -126,22 +126,23 @@ dat <- dat[complete.cases(dat),]
 rm(brew_list, data_listtwentyone, temptwentyone, this_data, treesi, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
 
 
-
+dat <- dat%>%
+  select(household = Household, species = Species, height_m = Height_m, diam_cm, year, id)
 
 
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
 dat <- dat %>%
-  mutate(Species = case_when(
-    Species == 'AKAJOU'~ 'A',
-    Species == 'A' ~ 'A',
-    Species == 'MANGO' ~ 'M',
-    Species == 'M' ~ 'M',
-    Species == 'KAFE' ~ 'K',
-    Species == 'K' ~ 'K',
-    Species == 'CED' ~ 'C',
-    Species == 'C' ~ 'C',
-    Species == 'NEW KAFE' ~ 'KK',
-    Species == 'KK' ~ 'KK'
+  mutate(species = case_when(
+    species == 'AKAJOU'~ 'A',
+    species == 'A' ~ 'A',
+    species == 'MANGO' ~ 'M',
+    species == 'M' ~ 'M',
+    species == 'KAFE' ~ 'K',
+    species == 'K' ~ 'K',
+    species == 'CED' ~ 'C',
+    species == 'C' ~ 'C',
+    species == 'NEW KAFE' ~ 'KK',
+    species == 'KK' ~ 'KK'
   ))
 
 ############################################################################################
@@ -161,7 +162,7 @@ cole_ewel <- function(d,h){
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
 dat <- dat %>%
-mutate(cole_ewel = cole_ewel(diam_cm, Height_m))
+mutate(cole_ewel = cole_ewel(diam_cm, height_m))
 # 
 # #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
@@ -182,7 +183,7 @@ TFTF <- function(d,h){
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
 # 
 dat <- dat %>%
-  mutate(TFTF = TFTF(diam_cm, Height_m))
+  mutate(TFTF = TFTF(diam_cm, height_m))
 #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>% 
 #   select(-TFTF)
@@ -218,7 +219,7 @@ Dickert_Mahogany <- function(d,h){
 }
 # This is the code that creates a new column in the data with the equation from the Dickert paper. 
 # dat <- dat %>%
-#   mutate(Mahogany = Dickert_Mahogany(diam_cm, Height_m))
+#   mutate(Mahogany = Dickert_Mahogany(diam_cm, height_m))
 # 
 # dat <- dat %>%
 #   select(-Mahogany)
@@ -235,7 +236,7 @@ Cole_Cedrela <- function(d,h){
 }
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
 # dat <- dat %>%
-#   mutate(Cedrela = Cole_Cedrela(diam_cm, Height_m))
+#   mutate(Cedrela = Cole_Cedrela(diam_cm, height_m))
 # dat <- dat %>%
 #   select(-Cedrela)
 
@@ -270,7 +271,7 @@ Chave_General <- function(d,h){
 }
 # This is the code that creates a new column in the data with the equation listed above.
 dat <- dat %>%
-  mutate(Chave_General = Chave_General(diam_cm, Height_m))
+  mutate(Chave_General = Chave_General(diam_cm, height_m))
 # dat <- dat %>%
 #   select(-Chave_General)
 #-------------------------------------------------------------------------------------------
@@ -278,35 +279,36 @@ dat <- dat %>%
 # This is the code that binds all the equations together into one column based off what Dr. McGrath found appropriate. 
 dat <- dat %>% 
   # select(Household, Species, diam_cm, Height_m, id, year) %>% 
-  mutate(Calculations = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
-                                  Species == 'A' ~ Chave_General(diam_cm, Height_m),
-                                  Species == 'C' ~ Chave_General(diam_cm, Height_m),
-                                  Species == 'K' ~ Acosta_Coffee(diam_cm),
-                                  Species == 'KK' ~ Acosta_Coffee(diam_cm)
+  mutate(calculations = case_when(species == 'M' ~ Sharma_Mango(diam_cm),
+                                  species == 'A' ~ Chave_General(diam_cm, height_m),
+                                  species == 'C' ~ Chave_General(diam_cm, height_m),
+                                  species == 'K' ~ Acosta_Coffee(diam_cm),
+                                  species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
 
 #This is what we used for the Allometric equations tab to look at each equations that are speciefic for each tree. 
 dat <- dat %>% 
   # select(Household, Species, diam_cm, Height_m, id, year) %>% 
-  mutate(Species_Specific = case_when(Species == 'M' ~ Sharma_Mango(diam_cm),
-                                  Species == 'A' ~ Dickert_Mahogany(diam_cm, Height_m),
-                                  Species == 'C' ~ Cole_Cedrela(diam_cm, Height_m),
-                                  Species == 'K' ~ Acosta_Coffee(diam_cm),
-                                  Species == 'KK' ~ Acosta_Coffee(diam_cm)
+  mutate(species_specific = case_when(species == 'M' ~ Sharma_Mango(diam_cm),
+                                  species == 'A' ~ Dickert_Mahogany(diam_cm, height_m),
+                                  species == 'C' ~ Cole_Cedrela(diam_cm, height_m),
+                                  species == 'K' ~ Acosta_Coffee(diam_cm),
+                                  species == 'KK' ~ Acosta_Coffee(diam_cm)
   )
   )
 
 #This line of code is for fraud detection. Information sent to Dr. McGrath in an email. 
 # fix <- dat%>%
-#   mutate(LogHeight = log(Height_m))%>%
+#   mutate(LogHeight = log(height_m))%>%
 #   filter(LogHeight <= -2.5)
 # 
-# table(fix$Household)
+# table(fix$household)
 ############################################################################################
 #READ THIS ALL INTO A CSV FILE TO PASS TO THE SHINEY DASHBOARD R SCRIPT
 
 
 write_csv(dat, 'dat.csv')
+
 
 
