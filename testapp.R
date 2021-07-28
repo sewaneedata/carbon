@@ -100,10 +100,11 @@ ui <- dashboardPage(
                  
                  valueBoxOutput("tot_tree", width = '100%')
           ),
-          
+         
           column(8, 
                  br (),
                  br (),
+                 downloadButton(outputId = 'household_plot_dl', 'Download plot'),
                  br (),
                  br (),
                  plotOutput("household"))
@@ -565,6 +566,105 @@ server <- function(input, output) {
   
   
   )
+  
+  output$household_plot_dl <- downloadHandler(filename = paste0("main_plot",Sys.Date(), ".png"),
+                                              content = function(file) {
+                                                datyear <- dat
+                                                iyear <- input$year
+                                                he <- input$household
+                                                graph <- input$graph
+                                                # save(datyear, iyear, he, graph, file = '/tmp/katebaker.RData' )
+                                                
+                                                if (iyear =='2019'){
+                                                  datyear <- dat %>% filter(year == 2019)
+                                                  iyear <- as.numeric(iyear)
+                                                } else if(iyear == "Total"){
+                                                  datyear <- dat %>% filter (year == 2021)
+                                                } else if (iyear == '2021'){
+                                                  datyear <- joined_19_21
+                                                  iyear <- as.numeric(iyear)
+                                                }
+                                                
+                                                
+                                                
+                                                
+                                                ok <- FALSE
+                                                if(!is.null(he)){
+                                                  ok <- TRUE
+                                                }
+                                                
+                                                if(ok){
+                                                  # create plot based on households.  
+                                                  if (he == 'All') {
+                                                    subhe <-  datyear  %>%
+                                                      group_by( species ) %>% 
+                                                      summarize( Carbon = sum(calculations))
+                                                  } else {
+                                                    subhe <-datyear  %>%
+                                                      filter(household == he) %>% 
+                                                      group_by( species ) %>% 
+                                                      summarize( Carbon = sum(calculations))
+                                                  }
+                                                  
+                                                  if (he == 'All') {
+                                                    payments <-  datyear  %>%
+                                                      group_by( species ) %>%
+                                                      summarise(Pay = (sum(calculations)*50))
+                                                  } else {
+                                                    payments <-datyear %>%
+                                                      filter(household == he)%>%
+                                                      group_by( species ) %>%
+                                                      summarise(Pay = (sum(calculations)*50))
+                                                  }
+                                                  
+                                                  if (iyear == 2021){
+                                                    if (he == 'All') {
+                                                      Num_Tree <- joined_19_21  %>% group_by(species ) %>%  summarize (Tre = sum( sum_tree ))
+                                                    } else{
+                                                      Num_Tree <- joined_19_21  %>% filter( household == he ) %>% group_by(species ) %>% summarize (Tre = sum_tree )
+                                                    }
+                                                  } else {
+                                                    
+                                                    if (he == 'All') {
+                                                      Num_Tree <-  datyear  %>%
+                                                        group_by( species ) %>%
+                                                        summarise(Tre = length(household))
+                                                    } else {
+                                                      Num_Tree <-        datyear %>%
+                                                        filter(household == he)%>%
+                                                        group_by( species ) %>%
+                                                        summarise(Tre = length(household))
+                                                    }
+                                                  }
+                                                  
+                                                  if(graph=='Carbon sequestered'){
+                                                    ggplot(subhe, aes(x = species, y=Carbon, fill=species)) +
+                                                      geom_bar(position = 'dodge', stat = 'identity') +
+                                                      geom_text( aes(label=round(Carbon,3)), vjust=0) +
+                                                      labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+                                                    ggsave(file, width = 8, height = 8)
+                                                    
+                                                  } else if (graph == 'Carbon payments'){
+                                                    ggplot(data = payments, aes(x = species, y = Pay, fill = species))+
+                                                      geom_bar(position = 'dodge', stat = 'identity') +
+                                                      geom_text( aes(label=round(Pay,2)), vjust=0) +
+                                                      labs(title = paste0('Payments for Household ',he), x = 'Species', y = 'Payment in USD') + ggthemes::theme_economist() + theme (legend.position = 'none')
+                                                    ggsave(file, width = 8, height = 8)
+                                                    
+                                                  } else if (graph == 'Number of trees'){
+                                                    ggplot(data = Num_Tree, aes(x = species, y = Tre, fill = species))+
+                                                      geom_bar(position = 'dodge', stat = 'identity') +
+                                                      geom_text( aes(label=Tre, vjust=0)) +
+                                                      labs(title = paste0('Number of Trees for Household ',he), x = 'Species', y = 'Number of Trees') + ggthemes::theme_economist() + theme (legend.position = 'none')
+                                                    ggsave(file, width = 8, height = 8)
+                                                    
+                                                  }
+                                                  
+                                                } 
+                                               
+                                              })
+  
+  
 }
 
 
