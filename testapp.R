@@ -130,6 +130,7 @@ ui <- dashboardPage(
         
         
       ),
+  # minor change
   # These are all the inputs for the allometric tab. 
       tabItem(
         tabName="allometric",
