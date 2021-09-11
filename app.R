@@ -487,9 +487,9 @@ server <- function(input, output) {
   })
 
 # This creates the plots for the main panel-------------------------------------
-  output$household <- renderPlot({plot(1~1)})
+  #output$household <- renderPlot({plot(1~1)})
   
-  output$household2 <- renderPlot({
+  output$household <- renderPlot({
     datyear <- dat
     iyear <- input$year
     he <- input$household
@@ -564,10 +564,11 @@ server <- function(input, output) {
       }
 
       if(graph=='Carbon sequestered'){
-        ggplot(subhe, aes(x = species, y=Carbon, fill=species)) +
-          geom_bar(position = 'dodge', stat = 'identity') +
-          geom_text( aes(label=round(Carbon,3)), vjust=0) +
-          labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+        plot(1~1)
+        #ggplot(subhe, aes(x = species, y=Carbon, fill=species)) +
+        #  geom_bar(position = 'dodge', stat = 'identity') +
+        #  geom_text( aes(label=round(Carbon,3)), vjust=0) +
+        #  labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
       } else if (graph == 'Carbon payments'){
         ggplot(data = payments, aes(x = species, y = Pay, fill = species))+
           geom_bar(position = 'dodge', stat = 'identity') +
