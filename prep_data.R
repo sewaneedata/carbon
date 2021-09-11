@@ -1,50 +1,52 @@
 #Zanmi Kafe R-Script:
-#Hello person working on this. The lines bellow are the packages that We used for this sheet. Run these three lines of code, if they don't work then type in install.packages and put in the name of the packages in that function. After that, run these again. 
+#Hello person working on this. The lines bellow are the packages that We used for this sheet. Run these three lines of code, if they don't work then type in install.packages and put in the name of the packages in that function. After that, run these again.
 library (dplyr)
 library(googlesheets4)
 library (tidyr)
 library(readr)
+
+
 ############################################################################################
 #READING IN THE DATA:
-# This is a for loop that reads in the data from a Google sheet and puts it into R. You have to do this for loop for each spreadsheet used. The 2019 data is annotates for where values need to be changed for inputting data in later years.   
+# This is a for loop that reads in the data from a Google sheet and puts it into R. You have to do this for loop for each spreadsheet used. The 2019 data is annotates for where values need to be changed for inputting data in later years.
 
 
 #-------------------------------------------------------------------------------------------
 #For loop and data editing for 2019 data:
 data_list <- list()
-#For the code on the line bellow, use the numbers to indicate which Google sheets are read in. Our data for the 2019 sheet had household one start on sheet 5 and end on sheet 54. 
+#For the code on the line bellow, use the numbers to indicate which Google sheets are read in. Our data for the 2019 sheet had household one start on sheet 5 and end on sheet 54.
 sheet_numbers <- 5:54
-i=1
+i=2
 for(i in 1:length(sheet_numbers)){
   sheet_id <- sheet_numbers[i]
   #This is the place where we entered the Google sheet link to the 2019 data.
-  
-  temp <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1QMTqhd-llPQH_2AfaiV6klHXpe1alPE7Eo85UU82sP0/edit?usp=sharing', sheetid=sheet_id)
-  
-  head(temp)
-  #The code on the line below indicates which columns you want to read in. For the 2019 data we wanted to read in the first six columns on the each household spreadsheet. Make sure that the names of the columns are the same on all Google spreadsheets used. You will run into issues if the names or orders of columns are different. 
+  gs4_deauth()
+  temp <- googlesheets4::read_sheet('https://docs.google.com/spreadsheets/d/1QMTqhd-llPQH_2AfaiV6klHXpe1alPE7Eo85UU82sP0/edit?usp=sharing',
+                             sheet=sheet_id)
+  # The code on the line below indicates which columns you want to read in.
+  # For the 2019 data we wanted to read in the first six columns on the each household spreadsheet.
+  # Make sure that the names of the columns are the same on all Google spreadsheets used.
+  # You will run into issues if the names or orders of columns are different.
   temp <- temp[,1:6]
-  head(temp)
-  temp$Household <- sheet_id - 4
+  #head(temp)
   data_list[[i]] <- temp
-  print(i)
 }
 #This binds the lists into one data frame (we are calling it 'dat')
 dat <- do.call('rbind', data_list)
 
-# This makes this data frame into one that is designated for the 2019 data. 
+# This makes this data frame into one that is designated for the 2019 data.
 
 nineteendat <- dat
 
-#This removes the N/A from 'dat'. 
+#This removes the N/A from 'dat'.
 nineteendat <- nineteendat %>% drop_na()
 nrow(nineteendat)
 nineteendat <- nineteendat[complete.cases(nineteendat),]
 
-#This puts a year column in the 2019 data and assigns the year for each row as 2019.  
+#This puts a year column in the 2019 data and assigns the year for each row as 2019.
 nineteendat$year <- 2019
 
-#This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame. 
+#This is code that only applies to the 2019 data. This for loop adds a household ID column to the data frame.
 
 houses <- unique(nineteendat$Household) ; houses
 i=1 # define i to help build for loop
@@ -58,7 +60,7 @@ for(i in 1:length(houses)){ # begin for loop
 ids
 nineteendat$id <- ids # add these id's as a column to the data frame
 head(dat) # check it out
-#This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need. 
+#This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need.
 
 nineteendat <- nineteendat %>%
   select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
@@ -73,13 +75,15 @@ sheet_numbers <- 1:50
 for(i in 1:length(sheet_numbers)){
   sheet_id <- sheet_numbers[i]
   message('fonna read ', sheet_id)
-  temptwentyone <- gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/10AIlsE5MR-0I7kzj__s2g6uOrjIvRm3pixnQZ2-FB4c/edit#gid=1958132654', sheetid=sheet_id)
+  gs4_deauth()
+  temptwentyone <- googlesheets4::read_sheet('https://docs.google.com/spreadsheets/d/10AIlsE5MR-0I7kzj__s2g6uOrjIvRm3pixnQZ2-FB4c/edit#gid=1958132654',
+                                    sheet=sheet_id)
   temptwentyone <- temptwentyone [,1:5]
   head(temptwentyone)
   data_listtwentyone [[i]] <- temptwentyone
 }
 
-#This is something that Joe wrote that changes the names of the columns because the column names for 2021 did not match the column names for 2019. It also takes out the measurements in the data. There was sime data that had cm or mm after the measurement. 
+#This is something that Joe wrote that changes the names of the columns because the column names for 2021 did not match the column names for 2019. It also takes out the measurements in the data. There was sime data that had cm or mm after the measurement.
 brew_list <- list()
 for(i in 1:length(data_listtwentyone)){
   this_data <- data_listtwentyone[[i]]
@@ -103,17 +107,17 @@ for(i in 1:length(data_listtwentyone)){
   brew_list[[i]] <- this_data
 }
 
-#This binds the 2021 data into a data frame. 
+#This binds the 2021 data into a data frame.
 twentyonedat <- bind_rows(brew_list)
 head(twentyonedat)
 #twentyonedat <- twentyonedat %>% select (-Diam_mm)
-#This makes sure all the column names are the same. 
+#This makes sure all the column names are the same.
 twentyonedat <- twentyonedat %>%
-  rename (id = Tree, 
+  rename (id = Tree,
           diam_cm = Diam_corr_cm)
 twentyonedat <- twentyonedat %>%
   mutate (year = 2021,
-          Height_m = Height_cm / 100) 
+          Height_m = Height_cm / 100)
 twentyonedat <- twentyonedat %>%
   select (-Height_cm)
 
@@ -132,12 +136,12 @@ dat <- rbind(nineteendat, twentyonedat)
 
 dat <- dat %>% mutate(Species = toupper(Species))
 
-#This removes the N/A from 'dat'. 
+#This removes the N/A from 'dat'.
 
 dat <- dat %>% drop_na()
 dat <- dat[complete.cases(dat),]
 
-#This removes stuff from our environment that we don't need. 
+#This removes stuff from our environment that we don't need.
 rm(brew_list, data_listtwentyone, temptwentyone, this_data, treesi, houses, housi, i, idi, ids, sheet_id, sheet_numbers, temp, data_list)
 
 
@@ -162,10 +166,10 @@ dat <- dat %>%
 
 ############################################################################################
 #EQUATIONS
-#The first three equations are ones that Dr. McGrath found. For each equation, the last name of the author in the paper the equations was found is listed first, and the name of the tree the equation goes with is listed second. 
+#The first three equations are ones that Dr. McGrath found. For each equation, the last name of the author in the paper the equations was found is listed first, and the name of the tree the equation goes with is listed second.
 #-------------------------------------------------------------------------------------------
-#McGrath Eeuations: 
-# This is the green equation on Dr. McGrath's 2019 spreadsheet.  
+#McGrath Eeuations:
+# This is the green equation on Dr. McGrath's 2019 spreadsheet.
 cole_ewel <- function(d,h){
   biomass <- 1.631+.017*(d^2)*h
   carbon <- biomass * 0.5
@@ -175,10 +179,10 @@ cole_ewel <- function(d,h){
 }
 
 
-# This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation). 
+# This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation).
 dat <- dat %>%
 mutate(cole_ewel = cole_ewel(as.numeric(diam_cm), as.numeric(height_m)))
-# 
+#
 # #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
 #   select(-cole_ewel)
@@ -194,17 +198,17 @@ TFTF <- function(d,h){
   return(CO2equ_tons)
 }
 
-# 
-# # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation). 
-# 
+#
+# # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation).
+#
 dat <- dat %>%
   mutate(TFTF = TFTF(as.numeric(diam_cm), as.numeric(height_m)))
 #I am going to take this out in favor for a more specific formula:
-# dat <- dat %>% 
+# dat <- dat %>%
 #   select(-TFTF)
 #-------------------------------------------------------------------------------------------
-#Equations that we found 
-#This is our found equation for Mango. The final answer is given in tons. 
+#Equations that we found
+#This is our found equation for Mango. The final answer is given in tons.
 Sharma_Mango <- function(d){
   Abovebiomass <- 34.4703 - 8.067*(d) + 0.6589*(d^2)
   BelowGroundBiomass <- Abovebiomass*1.2
@@ -214,10 +218,10 @@ Sharma_Mango <- function(d){
   CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
-# # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango. 
+# # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango.
 # dat <- dat %>%
 #   mutate(Mango = Sharma_Mango(diam_cm))
-# 
+#
 # dat <- dat %>%
 #   select(-Mango)
 
@@ -232,14 +236,14 @@ Dickert_Mahogany <- function(d,h){
   CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
-# This is the code that creates a new column in the data with the equation from the Dickert paper. 
+# This is the code that creates a new column in the data with the equation from the Dickert paper.
 # dat <- dat %>%
 #   mutate(Mahogany = Dickert_Mahogany(diam_cm, height_m))
-# 
+#
 # dat <- dat %>%
 #   select(-Mahogany)
 
-# This is the cedrela tree equation from the Cole and Ewel paper. 
+# This is the cedrela tree equation from the Cole and Ewel paper.
 Cole_Cedrela <- function(d,h){
   Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
   BlowGround <- Abovebiomass *1.2
@@ -249,14 +253,14 @@ Cole_Cedrela <- function(d,h){
   CO2equ_tons <- CO2equ_kg *0.001102
   return(CO2equ_tons)
 }
-# This is the code that creates a new column in the data with the equation from the Cole and Ewel paper. 
+# This is the code that creates a new column in the data with the equation from the Cole and Ewel paper.
 # dat <- dat %>%
 #   mutate(Cedrela = Cole_Cedrela(diam_cm, height_m))
 # dat <- dat %>%
 #   select(-Cedrela)
 
 
-#This equations came from the Mexico paper. 
+#This equations came from the Mexico paper.
 Acosta_Coffee <- function(d){
   Abovebiomass <- exp(-0.66)*((d)^1.37)
   carbonTree <- Abovebiomass *0.5
@@ -290,10 +294,10 @@ dat <- dat %>%
 # dat <- dat %>%
 #   select(-Chave_General)
 #-------------------------------------------------------------------------------------------
-#BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD. 
-# This is the code that binds all the equations together into one column based off what Dr. McGrath found appropriate. 
-dat <- dat %>% 
-  # select(Household, Species, diam_cm, Height_m, id, year) %>% 
+#BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD.
+# This is the code that binds all the equations together into one column based off what Dr. McGrath found appropriate.
+dat <- dat %>%
+  # select(Household, Species, diam_cm, Height_m, id, year) %>%
   mutate(calculations = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
                                   species == 'A' ~ Chave_General(as.numeric(diam_cm),
                                                                  as.numeric(height_m)),
@@ -303,9 +307,9 @@ dat <- dat %>%
   )
   )
 
-#This is what we used for the Allometric equations tab to look at each equations that are speciefic for each tree. 
-dat <- dat %>% 
-  # select(Household, Species, diam_cm, Height_m, id, year) %>% 
+#This is what we used for the Allometric equations tab to look at each equations that are speciefic for each tree.
+dat <- dat %>%
+  # select(Household, Species, diam_cm, Height_m, id, year) %>%
   mutate(species_specific = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
                                   species == 'A' ~ Dickert_Mahogany(as.numeric(diam_cm), as.numeric(height_m)),
                                   species == 'C' ~ Cole_Cedrela(as.numeric(diam_cm), as.numeric(height_m)),
@@ -314,15 +318,18 @@ dat <- dat %>%
   )
   )
 
-#This line of code is for fraud detection. Information sent to Dr. McGrath in an email. 
+#This line of code is for fraud detection. Information sent to Dr. McGrath in an email.
 # fix <- dat%>%
 #   mutate(LogHeight = log(height_m))%>%
 #   filter(LogHeight <= -2.5)
-# 
+#
 # table(fix$household)
 ############################################################################################
 #READ THIS ALL INTO A CSV FILE TO PASS TO THE SHINEY DASHBOARD R SCRIPT
 
+head(dat)
+unique(dat$household)
+table(dat$year,dat$household)
 
 write_csv(dat, 'dat.csv')
 
