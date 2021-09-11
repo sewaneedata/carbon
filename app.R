@@ -7,6 +7,7 @@ library(ggplot2)
 library(plotly)
 library(tidyr)
 library(ggthemes)
+library(reshape2)
 
 #This is reading in the data that is created in testdata.R. Be sure that testdata is loaded and that the dat.csv is in the same folder as this code before running this line of code.
 dat <- read.csv('dat.csv')
