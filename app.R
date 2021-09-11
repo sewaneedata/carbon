@@ -487,7 +487,9 @@ server <- function(input, output) {
   })
 
 # This creates the plots for the main panel-------------------------------------
-  output$household <- renderPlot({
+  output$household <- renderPlot({plot(1~1)})
+  
+  output$household2 <- renderPlot({
     datyear <- dat
     iyear <- input$year
     he <- input$household
