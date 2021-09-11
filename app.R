@@ -6,6 +6,7 @@ library(shinythemes)
 library(ggplot2)
 library(plotly)
 library(tidyr)
+library(ggthemes)
 
 #This is reading in the data that is created in testdata.R. Be sure that testdata is loaded and that the dat.csv is in the same folder as this code before running this line of code.
 dat <- read.csv('dat.csv')
@@ -564,11 +565,12 @@ server <- function(input, output) {
       }
 
       if(graph=='Carbon sequestered'){
-        plot(1~1)
-        #ggplot(subhe, aes(x = species, y=Carbon, fill=species)) +
-        #  geom_bar(position = 'dodge', stat = 'identity') +
-        #  geom_text( aes(label=round(Carbon,3)), vjust=0) +
-        #  labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + ggthemes::theme_economist() + theme (legend.position = 'none')
+        #plot(1~1)
+        ggplot(subhe, aes(x = species, y=Carbon, fill=species)) +
+          geom_bar(position = 'dodge', stat = 'identity') +
+          geom_text( aes(label=round(Carbon,3)), vjust=0) +
+          labs(title = paste0('CO2 Sequestered in Household ',he), x = 'Species', y = 'C02 Estimate (tons)') + 
+          ggthemes::theme_economist() + theme (legend.position = 'none')
       } else if (graph == 'Carbon payments'){
         ggplot(data = payments, aes(x = species, y = Pay, fill = species))+
           geom_bar(position = 'dodge', stat = 'identity') +
