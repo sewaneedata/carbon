@@ -159,11 +159,12 @@ ui <- dashboardPage(
 
       ),
   #These are the inputs for the about tab.
+  
       tabItem(
         tabName = 'about',
         fluidPage(
           fluidRow(
-            div(img(src='Man.png', height = 200, width = 400, align = "center"), style="text-align: center;"),
+            div(img(src='./images/Man.png', height = 200, width = 400, align = "center"), style="text-align: center;"),
             h2('Built in partnership with ',
                a(href = 'http://datalab.sewanee.edu',
                  target='_blank', 'DataLab'),
@@ -408,12 +409,11 @@ server <- function(input, output) {
     if(is.null(sum_carb)){
       the_title <- ' '
     } else {
-      sum_carb <- round(sum_carb, digits = 3)
+      sum_carb <- round(sum_carb, digits = 2)
       the_title <- as.character(sum_carb)
     }
 
-    valueBox(
-      the_title,
+    valueBox( value = paste0(the_title, 'tons of C'),
       he,
       icon = icon ('globe'),
       subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua'
