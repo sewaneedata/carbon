@@ -10,4 +10,12 @@ The allometric comparison tab compares allometric equations used in various calc
 
 Hopefully, this dashboard will continue to remain useful by receiving new data from future years, as well as serve as a model for other small-scale carbon markets. Next steps include adapting the project to allow for faster growth and more in-depth analysis of the data sets. It is Zanmi Kafe's goal to partner with the Haiti Photo Project to build maps with geospatial data points that observe the changes in economic development caused by growing carbon markets through the evaluation of the farmer's photos. Finally, it is a goal to one day automate this entire process in such a way that drone imaging could measure tree growth and size and automatically upload the recorded data into our dashboard for analysis.
 
+Now how do you run the code?
+
+Well, first you want to run prep_data.R and then you want to run app.R. prep_data.R will read in all of the data from the excels on the google drive and will create your dat.csv file while app.R is what creates your app.
+
+In prep_data.R we had to read in the google sheets using googlesheets4 because gsheet refuses to read any sheets other than the first sheet. The authorization issue of googlesheets4 has been avoided by using a function called googlesheets4::gs4deauth().
+
+Good luck!
+
 Created in collaboration with Sewanee DataLab, Deborah McGrath, Nika Gorski, Kate Baker, and Caroline Willette
