@@ -4,6 +4,8 @@ library (dplyr)
 library(googlesheets4)
 library (tidyr)
 library(readr)
+#loads the equations that are held in the functions files
+source('functions.R')
 
 
 ############################################################################################
@@ -169,15 +171,6 @@ dat <- dat %>%
 #The first three equations are ones that Dr. McGrath found. For each equation, the last name of the author in the paper the equations was found is listed first, and the name of the tree the equation goes with is listed second.
 #-------------------------------------------------------------------------------------------
 #McGrath Eeuations:
-# This is the green equation on Dr. McGrath's 2019 spreadsheet.
-cole_ewel <- function(d,h){
-  biomass <- 1.631+.017*(d^2)*h
-  carbon <- biomass * 0.5
-  CO2equ <- carbon * 3.6663
-  CO2equ_tons <- CO2equ *0.001102
-  return(CO2equ_tons)
-}
-
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation).
 dat <- dat %>%
@@ -186,17 +179,6 @@ mutate(cole_ewel = cole_ewel(as.numeric(diam_cm), as.numeric(height_m)))
 # #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
 #   select(-cole_ewel)
-
-#This is the orange equation on Dr. McGrath's spreadsheet.
-TFTF <- function(d,h){
-  Abovebiomass <- 0.25*((d/2.54)^2)*(h*3.28)
-  Mass <- Abovebiomass/2.205
-  ABBiomass <- Mass*1.2
-  carbon <- ABBiomass * 0.5
-  CO2equ <- carbon *3.6663
-  CO2equ_tons <- CO2equ *0.001102
-  return(CO2equ_tons)
-}
 
 #
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation).
@@ -207,17 +189,7 @@ dat <- dat %>%
 # dat <- dat %>%
 #   select(-TFTF)
 #-------------------------------------------------------------------------------------------
-#Equations that we found
-#This is our found equation for Mango. The final answer is given in tons.
-Sharma_Mango <- function(d){
-  Abovebiomass <- 34.4703 - 8.067*(d) + 0.6589*(d^2)
-  BelowGroundBiomass <- Abovebiomass*1.2
-  TotalBiomass <- BelowGroundBiomass + Abovebiomass
-  carbon <- TotalBiomass * 0.5
-  CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
+
 # # This is the code that creates a new column in the data with the equation from the Sharma et al. paper that gives us the CO2 equ in tons for mango.
 # dat <- dat %>%
 #   mutate(Mango = Sharma_Mango(diam_cm))
@@ -225,17 +197,7 @@ Sharma_Mango <- function(d){
 # dat <- dat %>%
 #   select(-Mango)
 
-#This is the equation for the Mahogany tree.
 
-Dickert_Mahogany <- function(d,h){
-  Abovebiomass <- 0.09029*((d^2)*h)^(0.684)
-  BlowGround <- Abovebiomass *1.2
-  AGABG <- Abovebiomass + BlowGround
-  carbon <- AGABG * 0.5
-  CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
 # This is the code that creates a new column in the data with the equation from the Dickert paper.
 # dat <- dat %>%
 #   mutate(Mahogany = Dickert_Mahogany(diam_cm, height_m))
@@ -243,33 +205,13 @@ Dickert_Mahogany <- function(d,h){
 # dat <- dat %>%
 #   select(-Mahogany)
 
-# This is the cedrela tree equation from the Cole and Ewel paper.
-Cole_Cedrela <- function(d,h){
-  Abovebiomass <- 0.0448*((d^2)*h)^(0.4879)
-  BlowGround <- Abovebiomass *1.2
-  AGABG <- Abovebiomass + BlowGround
-  carbon <- AGABG * 0.5
-  CO2equ_kg <- carbon *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
+
 # This is the code that creates a new column in the data with the equation from the Cole and Ewel paper.
 # dat <- dat %>%
 #   mutate(Cedrela = Cole_Cedrela(diam_cm, height_m))
 # dat <- dat %>%
 #   select(-Cedrela)
 
-
-#This equations came from the Mexico paper.
-Acosta_Coffee <- function(d){
-  Abovebiomass <- exp(-0.66)*((d)^1.37)
-  carbonTree <- Abovebiomass *0.5
-  BelowBiomass <- carbonTree*1.2
-  AGABGBiomass <- BelowBiomass + carbonTree
-  CO2equ_kg <- AGABGBiomass *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
 
 # This is the code that creates a new column in the data with the equation listed above.
 # dat <- dat %>%
@@ -278,16 +220,7 @@ Acosta_Coffee <- function(d){
 #   select(-Acosta_Coffee)
 
 
-#This equations is from the Chave paper and gives a general equation for carbon.
-Chave_General <- function(d,h){
-  Abovebiomass <- (0.0673)*((.42)*(d^2)*(h))^0.976
-  carbonTree <- Abovebiomass *0.5
-  BelowBiomass <- carbonTree*1.2
-  AGABGBiomass <- BelowBiomass + carbonTree
-  CO2equ_kg <- AGABGBiomass *3.6663
-  CO2equ_tons <- CO2equ_kg *0.001102
-  return(CO2equ_tons)
-}
+
 # This is the code that creates a new column in the data with the equation listed above.
 dat <- dat %>%
   mutate(Chave_General = Chave_General(as.numeric(diam_cm), as.numeric(height_m)))

@@ -115,7 +115,11 @@ ui <- dashboardPage(
                  downloadButton(outputId = 'household_plot_dl', 'Download plot'),
                  br (),
                  br (),
-                 plotOutput("household"))
+                 plotOutput("household"),
+                 br(),
+                 br(),
+                 column(8),
+                 column(4,actionButton('refresh', 'Refresh Data', width = '100%')))
         )
       ),
   #These are all the inputs for the regressions tab.
@@ -164,7 +168,7 @@ ui <- dashboardPage(
         tabName = 'about',
         fluidPage(
           fluidRow(
-            div(img(src='./images/Man.png', height = 200, width = 400, align = "center"), style="text-align: center;"),
+            div(img(src='Man.png', height = 200, width = 400, align = "center"), style="text-align: center;"),
             h2('Built in partnership with ',
                a(href = 'http://datalab.sewanee.edu',
                  target='_blank', 'DataLab'),
