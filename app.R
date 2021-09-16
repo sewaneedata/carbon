@@ -413,7 +413,7 @@ server <- function(input, output) {
       the_title <- as.character(sum_carb)
     }
 
-    valueBox( value = paste0(the_title, 'tons of C'),
+    valueBox( value = tags$p(the_title, ' tons of C', style = "font-size: 75%;"),
       he,
       icon = icon ('globe'),
       subtitle = paste0('Total Carbon Sequestered in tons for Farm ', he), color = 'aqua'
@@ -451,6 +451,9 @@ server <- function(input, output) {
     } else {
       the_title <- as.character(round(sum_calc,2))
     }
+    
+    #this function below will add a comma in the appropriate places on large numbers
+    the_title <- format(12345.678,big.mark=",",scientific=FALSE)
 
     valueBox(value = paste0 ('$', the_title),
              icon = icon ('dollar'),
@@ -483,7 +486,7 @@ server <- function(input, output) {
       sum_tree <- length(twentyonesubhe$household) - length(nineteensubhe$household)
     }
 
-    valueBox(value = sum_tree,
+    valueBox(value = tags$p(sum_tree, ' trees', style = "font-size: 75%;"),
              icon = icon ('tree'),
              subtitle = paste0('Total Trees on Farm ', he), color = 'green' )
   })
