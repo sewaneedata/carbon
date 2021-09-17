@@ -20,6 +20,9 @@ data_list <- list()
 sheet_numbers <- 5:54
 i=2
 for(i in 1:length(sheet_numbers)){
+  # Increment the progress bar, and update the detail text.
+  incProgress(1/115, detail = paste("Reading 2019 data ..."))
+
   sheet_id <- sheet_numbers[i]
   #This is the place where we entered the Google sheet link to the 2019 data.
   gs4_deauth()
@@ -65,7 +68,7 @@ head(dat) # check it out
 #This changes the names of the variables into names that can easily be typed into R functions and Dplyr inputs. We keep the variables Household and Species the same but change the heights and diameters with units. This also takes out columns that we do not need.
 
 nineteendat <- nineteendat %>%
-  select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
+  dplyr::select(Household, Species, Height_m = 'H (m)', diam_cm = 'dbh (cm)', year, id )
 
 
 #-------------------------------------------------------------------------------------------
@@ -75,6 +78,9 @@ nineteendat <- nineteendat %>%
 data_listtwentyone <- list ()
 sheet_numbers <- 1:50
 for(i in 1:length(sheet_numbers)){
+  # Increment the progress bar, and update the detail text.
+  incProgress(1/115, detail = paste("Reading 2020 data ..."))
+
   sheet_id <- sheet_numbers[i]
   message('fonna read ', sheet_id)
   gs4_deauth()
@@ -109,19 +115,22 @@ for(i in 1:length(data_listtwentyone)){
   brew_list[[i]] <- this_data
 }
 
+# Increment the progress bar, and update the detail text.
+incProgress(1/115, detail = paste("Formatting data..."))
+
 #This binds the 2021 data into a data frame.
 twentyonedat <- bind_rows(brew_list)
 head(twentyonedat)
 #twentyonedat <- twentyonedat %>% select (-Diam_mm)
 #This makes sure all the column names are the same.
 twentyonedat <- twentyonedat %>%
-  rename (id = Tree,
+  dplyr::rename (id = Tree,
           diam_cm = Diam_corr_cm)
 twentyonedat <- twentyonedat %>%
-  mutate (year = 2021,
+  dplyr::mutate (year = 2021,
           Height_m = Height_cm / 100)
 twentyonedat <- twentyonedat %>%
-  select (-Height_cm)
+  dplyr::select (-Height_cm)
 
 # this is where we ran to! stop here and examine before binding datasets
 
@@ -136,7 +145,8 @@ twentyonedat <- twentyonedat[,order(names(twentyonedat))]
 dat <- rbind(nineteendat, twentyonedat)
 # dat <-bind_rows(nineteendat, twentyonedat)
 
-dat <- dat %>% mutate(Species = toupper(Species))
+dat <- dat %>%
+  dplyr::mutate(Species = toupper(Species))
 
 #This removes the N/A from 'dat'.
 
@@ -148,12 +158,12 @@ rm(brew_list, data_listtwentyone, temptwentyone, this_data, treesi, houses, hous
 
 
 dat <- dat%>%
-  select(household = Household, species = Species, height_m = Height_m, diam_cm, year, id)
+  dplyr::select(household = Household, species = Species, height_m = Height_m, diam_cm, year, id)
 
 
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
 dat <- dat %>%
-  mutate(species = case_when(
+  dplyr::mutate(species = case_when(
     species == 'AKAJOU'~ 'A',
     species == 'A' ~ 'A',
     species == 'MANGO' ~ 'M',
@@ -174,7 +184,7 @@ dat <- dat %>%
 
 # This is the code that creates a new column in the data with the equation from the cole&ewel paper (green equation).
 dat <- dat %>%
-mutate(cole_ewel = cole_ewel(as.numeric(diam_cm), as.numeric(height_m)))
+  dplyr::mutate(cole_ewel = cole_ewel(as.numeric(diam_cm), as.numeric(height_m)))
 #
 # #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
@@ -184,7 +194,7 @@ mutate(cole_ewel = cole_ewel(as.numeric(diam_cm), as.numeric(height_m)))
 # # This is the code that creates a new column in the data with the equation from the TFTF paper (orange equation).
 #
 dat <- dat %>%
-  mutate(TFTF = TFTF(as.numeric(diam_cm), as.numeric(height_m)))
+  dplyr::mutate(TFTF = TFTF(as.numeric(diam_cm), as.numeric(height_m)))
 #I am going to take this out in favor for a more specific formula:
 # dat <- dat %>%
 #   select(-TFTF)
@@ -219,19 +229,19 @@ dat <- dat %>%
 # dat <- dat %>%
 #   select(-Acosta_Coffee)
 
-
-
 # This is the code that creates a new column in the data with the equation listed above.
 dat <- dat %>%
-  mutate(Chave_General = Chave_General(as.numeric(diam_cm), as.numeric(height_m)))
+  dplyr::mutate(Chave_General = Chave_General(as.numeric(diam_cm), as.numeric(height_m)))
+
 # dat <- dat %>%
 #   select(-Chave_General)
+
 #-------------------------------------------------------------------------------------------
 #BINDING MULTIPAL EQUATIONS TOGETHER TO CREATE A NEW COLUMN FOR THE DATA TAB ON THE DASHBOARD.
 # This is the code that binds all the equations together into one column based off what Dr. McGrath found appropriate.
 dat <- dat %>%
   # select(Household, Species, diam_cm, Height_m, id, year) %>%
-  mutate(calculations = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
+  dplyr::mutate(calculations = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
                                   species == 'A' ~ Chave_General(as.numeric(diam_cm),
                                                                  as.numeric(height_m)),
                                   species == 'C' ~ Chave_General(as.numeric(diam_cm), as.numeric(height_m)),
@@ -243,7 +253,7 @@ dat <- dat %>%
 #This is what we used for the Allometric equations tab to look at each equations that are speciefic for each tree.
 dat <- dat %>%
   # select(Household, Species, diam_cm, Height_m, id, year) %>%
-  mutate(species_specific = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
+  dplyr::mutate(species_specific = case_when(species == 'M' ~ Sharma_Mango(as.numeric(diam_cm)),
                                   species == 'A' ~ Dickert_Mahogany(as.numeric(diam_cm), as.numeric(height_m)),
                                   species == 'C' ~ Cole_Cedrela(as.numeric(diam_cm), as.numeric(height_m)),
                                   species == 'K' ~ Acosta_Coffee(as.numeric(diam_cm)),
@@ -257,14 +267,70 @@ dat <- dat %>%
 #   filter(LogHeight <= -2.5)
 #
 # table(fix$household)
-############################################################################################
-#READ THIS ALL INTO A CSV FILE TO PASS TO THE SHINEY DASHBOARD R SCRIPT
 
+############################################################################################
+# Store this dataset in a CSV -- usable in Shiny and on its own, for analyses etc.
+
+# Check it out
 head(dat)
 unique(dat$household)
 table(dat$year,dat$household)
 
+# Store it
 write_csv(dat, 'dat.csv')
 
+############################################################################################
+# Formatting this CSV-ready file into an R object ready for use in Shiny
 
+#This changes the names of the trees from just a letter to their full names.
+# It is important to run this before working with the code below.
+dat <- dat %>%
+  dplyr::mutate(species = case_when(
+    species == 'A' ~ 'Akajou',
+    species == 'M' ~ 'Mango',
+    species == 'K' ~ 'Kafe',
+    species == 'C' ~ 'Ced',
+    species == 'KK' ~ 'New Kafe'
+  ))
+
+# This code makes the year 2021 the difference between 2019 and 2021
+# so we can look at change over time.
+
+sub2019 <- dat %>%
+  dplyr::filter(year==2019) %>%
+  dplyr::group_by(household, species) %>%
+  dplyr::summarize(Number=n(), Total=sum(calculations))
+
+sub2021 <- dat %>%
+  dplyr::filter(year==2021) %>%
+  dplyr::group_by(household, species) %>%
+  dplyr::summarize(Number=n(), Total=sum(calculations))
+
+joined_19_21 <- inner_join( sub2019,
+                            sub2021,
+                            by = c("household", "species"))
+
+joined_19_21 <- joined_19_21 %>%
+  dplyr::mutate( sum_tree = Number.y - Number.x,
+          calculations = Total.y - Total.x)
+
+joined_19_21 <- joined_19_21 %>%
+  dplyr::select(-Number.x, -Total.x,
+         -Number.y, -Total.y)
+
+joined_19_21 <- joined_19_21 %>%
+  dplyr::mutate(species = case_when(
+    species == 'Akajou'~ 'Akajou',
+    species == 'Mango' ~ 'Mango',
+    species == 'Kafe' ~ 'Kafe',
+    species == 'Ced' ~ 'Ced',
+    species == 'New Kafe' ~ 'New Kafe'#,
+  ))
+
+# Now save these two final datasets into a single R object (a list)
+data_list <- list(dat=dat,
+                  joined_19_21=joined_19_21)
+
+# Save that list as a R-data file (.rds)
+saveRDS(data_list,'data_list.rds')
 

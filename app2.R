@@ -120,9 +120,8 @@ ui <- dashboardPage(
                  br (),
                  br (),
                  plotOutput("household"),
-                 br(),br(),
-                 br(),br(),
-                 br(),br(),
+                 br(),
+                 br(),
                  column(8),
                  column(4,actionButton('refresh', 'Refresh Data', width = '100%')))
         )
@@ -209,28 +208,16 @@ ui <- dashboardPage(
 
 server <- function(input, output) {
 
-  # Handle data refresh ========================================================
-
   # Create 'reactive' variables that can be updated if the data are reloaded
-  reactive_dat <- reactiveVal(data_list$dat)
-  reactive_joined_19_21 <- reactiveVal(data_list$joined_19_21)
+  dat <- reactiveVal(data_list$dat)
+  joined_19_21 <- reactiveVal(data_list$joined_19_21)
 
-  # Refresh data
-  observeEvent(input$refresh, {
-    withProgress(message = 'Reloading data ...', value = 0, {
-      source('prep_data.R')
-      data_list <- readRDS('data_list.rds')
-      reactive_dat(data_list$dat)
-      reactive_joined_19_21(data_list$joined_19_21)
-    })
-  })
+
 
 ##################################### Allometric###############################
  #This puts in the select ayear and species options in the alloemetic tab.------
 
   output$allometric_ui <- renderUI({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
 
     sub_dat <- dat %>% dplyr::filter(year %in% input$year_allometric)
     if(nrow(sub_dat) > 0){
@@ -258,9 +245,6 @@ server <- function(input, output) {
 #This gives the plot for the allometric equations.------------------------------
 
   output$allometric_plot <- renderPlot({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     year_name <- input$year_allometric
     spec <- input$species
 
@@ -317,8 +301,6 @@ server <- function(input, output) {
  ################################ Regressions #################################
   #This is the creates the slect inputs for the regression tab.-----------------
   output$regression_ui <- renderUI({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
 
     sub_dat <- dat %>%
       dplyr::filter(year %in% input$year_regress)
@@ -338,9 +320,6 @@ server <- function(input, output) {
  #This creates the plot for the regressions tab.--------------------------------
 
   output$regression_plot <- renderPlot({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     df_lm <- lm(dat$height_m~dat$diam_cm)
     r2 <- summary(df_lm)$r.squared
     he <- input$household_regress
@@ -404,8 +383,6 @@ server <- function(input, output) {
 
 #This creates the select inputs for the main pannel-----------------------------
   output$household_ui <- renderUI({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
 
     yr<- input$year
     if(yr =='Total'){
@@ -427,9 +404,6 @@ server <- function(input, output) {
 
 #This creates a value box for the total carbon absorbed ------------------------
   output$tot_carb <- renderValueBox({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     he <- input$household
     iyear <- input$year
     subhe <- dat
@@ -469,9 +443,6 @@ server <- function(input, output) {
 
 #This creates a value box for the total money made------------------------------
   output$tot_money <- renderValueBox({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     he <- input$household
     iyear <- input$year
     subhe <- dat
@@ -513,9 +484,6 @@ server <- function(input, output) {
 
 #This creates a value box for the total amount of trees planted------------------
   output$tot_tree <- renderValueBox({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     he <- input$household
     iyear <- input$year
     subhe<- dat
@@ -548,9 +516,6 @@ server <- function(input, output) {
   #output$household <- renderPlot({plot(1~1)})
 
   output$household <- renderPlot({
-    dat <- reactive_dat()
-    joined_19_21 <- reactive_joined_19_21()
-
     datyear <- dat
     iyear <- input$year
     he <- input$household
@@ -651,9 +616,6 @@ server <- function(input, output) {
 
   output$household_plot_dl <- downloadHandler(filename = paste0("main_plot",Sys.Date(), ".png"),
                                               content = function(file) {
-                                                dat <- reactive_dat()
-                                                joined_19_21 <- reactive_joined_19_21()
-
                                                 datyear <- dat
                                                 iyear <- input$year
                                                 he <- input$household
