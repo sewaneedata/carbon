@@ -1,4 +1,4 @@
-## The Data Analysis of the Zanmi Kafe
+# The Data Analysis of the Zanmi Kafe
 
 This is the dashboard that we created in collaboration with the Zanmi Kafe project and the Sewanee DataLab. Zanmi Kafe's work offsets carbon emissions by planting trees on Haitian farms, which improves economic stability for the farmers. Our client needed a way to pay farmers and to efficiently calculate carbon sequestration using a vast amount of raw data. To solve this issue we developed this interactive dashboard that displays and analyzes the data.
 
@@ -18,7 +18,7 @@ The allometric comparison tab compares allometric equations used in various calc
 
 Hopefully, this dashboard will continue to remain useful by receiving new data from future years, as well as serve as a model for other small-scale carbon markets. Next steps include adapting the project to allow for faster growth and more in-depth analysis of the data sets. It is Zanmi Kafe's goal to partner with the Haiti Photo Project to build maps with geospatial data points that observe the changes in economic development caused by growing carbon markets through the evaluation of the farmer's photos. Finally, it is a goal to one day automate this entire process in such a way that drone imaging could measure tree growth and size and automatically upload the recorded data into our dashboard for analysis.
 
-**Now how do you run the code?**
+### Now how do you run the code?
 
 Well, first you want to run `prep_data.R` and then you want to run `app.R`. `prep_data.R` will read in all of the data from the excels on the google drive and will create your dat.csv file while `app.R` is what creates your app.
 
