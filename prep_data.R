@@ -7,6 +7,13 @@ library(readr)
 #loads the equations that are held in the functions files
 source('functions.R')
 
+############################################################################################
+# SWITCH DEBUG MODE ON or OFF
+# This code toggles 'debugging' mode on (if you are running this code outside of the app)
+# of off (default -- if this code is ready to be sourced the app)
+
+debug_mode <- FALSE
+
 
 ############################################################################################
 #READING IN THE DATA:
@@ -21,7 +28,7 @@ sheet_numbers <- 5:54
 i=2
 for(i in 1:length(sheet_numbers)){
   # Increment the progress bar, and update the detail text.
-  incProgress(1/115, detail = paste("Reading 2019 data ..."))
+  if(debug_mode == FALSE){incProgress(1/115, detail = paste("Reading 2019 data ..."))}
 
   sheet_id <- sheet_numbers[i]
   #This is the place where we entered the Google sheet link to the 2019 data.
@@ -79,7 +86,7 @@ data_listtwentyone <- list ()
 sheet_numbers <- 1:50
 for(i in 1:length(sheet_numbers)){
   # Increment the progress bar, and update the detail text.
-  incProgress(1/115, detail = paste("Reading 2020 data ..."))
+  if(debug_mode == FALSE){incProgress(1/115, detail = paste("Reading 2020 data ..."))}
 
   sheet_id <- sheet_numbers[i]
   message('fonna read ', sheet_id)
@@ -116,7 +123,7 @@ for(i in 1:length(data_listtwentyone)){
 }
 
 # Increment the progress bar, and update the detail text.
-incProgress(1/115, detail = paste("Formatting data..."))
+if(debug_mode == FALSE){incProgress(1/115, detail = paste("Formatting data..."))}
 
 #This binds the 2021 data into a data frame.
 twentyonedat <- bind_rows(brew_list)
