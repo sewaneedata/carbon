@@ -1,4 +1,4 @@
-# The Data Analysis of the Zanmi Kafe
+## The Data Analysis of the Zanmi Kafe
 
 This is the dashboard that we created in collaboration with the Zanmi Kafe project and the Sewanee DataLab. Zanmi Kafe's work offsets carbon emissions by planting trees on Haitian farms, which improves economic stability for the farmers. Our client needed a way to pay farmers and to efficiently calculate carbon sequestration using a vast amount of raw data. To solve this issue we developed this interactive dashboard that displays and analyzes the data.
 
