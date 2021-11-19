@@ -12,7 +12,7 @@ source('functions.R')
 # This code toggles 'debugging' mode on (if you are running this code outside of the app)
 # of off (default -- if this code is ready to be sourced the app)
 
-debug_mode <- FALSE
+debug_mode <- TRUE
 
 
 ############################################################################################
@@ -169,6 +169,9 @@ dat <- dat%>%
 
 
 #In the species column, this makes names of the plants uniform. All of the A's are Akajou, and the M's are Mango, all the K's are Kafe, all the C's are Ced, and all the KK's are New Kafe.
+head(dat)
+table(dat$species)
+
 dat <- dat %>%
   dplyr::mutate(species = case_when(
     species == 'AKAJOU'~ 'A',
@@ -282,6 +285,8 @@ dat <- dat %>%
 head(dat)
 unique(dat$household)
 table(dat$year,dat$household)
+
+#plot(cole_ewel ~ diam_cm,data=dat[dat$year==2021,])
 
 # Store it
 write_csv(dat, 'dat.csv')
